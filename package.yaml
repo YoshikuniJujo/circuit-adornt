@@ -1,0 +1,60 @@
+name:                circuit-adornt
+version:             0.1.0.0
+github:              "githubuser/circuit-adornt"
+license:             BSD3
+author:              "Yoshikuni Jujo"
+maintainer:          "yoshikuni.jujo.pc@gmail.com"
+copyright:           "2019 Yoshikuni Jujo"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            circuit simulator
+category:            CircuitSimulator
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/circuit-adornt#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- monads-tf
+- containers
+- array
+
+library:
+  source-dirs: src
+
+executables:
+  circuit-adornt-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - circuit-adornt
+  trySingleCycle:
+    main:                trySingleCycle.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - circuit-adornt
+
+tests:
+  circuit-adornt-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - circuit-adornt
