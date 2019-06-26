@@ -112,7 +112,8 @@ type BitPosIn = Word8
 type BitPosOut = Word8
 
 data CBState = CBState {
-	cbsWireNum :: Word32,
+	cbsIWireNum :: Word32,
+	cbsOWireNum :: Word32,
 	cbsGate :: Map OWire [BasicGate],
 	cbsWireConn :: Map IWire [(OWire, FromOWire)],
 	cbsDelay :: Map IWire Word8
@@ -120,7 +121,7 @@ data CBState = CBState {
 
 initCBState :: CBState
 initCBState = CBState {
-	cbsWireNum = 0, cbsGate = empty, cbsWireConn = empty, cbsDelay = empty }
+	cbsIWireNum = 0, cbsOWireNum = 0, cbsGate = empty, cbsWireConn = empty, cbsDelay = empty }
 
 data BasicGate
 	= ConstGate BitLen BitPosOut (Bits, BitPosIn)
@@ -140,10 +141,11 @@ gateWires (IdGate _ _ (i, _)) = [i]
 gateWires (TriStateSelect i is) = i : (snd <$> IM.toList is)
 
 makeIWire :: CircuitBuilder IWire
-makeIWire = IWire <$> getModify cbsWireNum sccWireNum
+makeIWire = IWire <$> getModify cbsIWireNum sccIWireNum
 
 makeOWire :: CircuitBuilder OWire
-makeOWire = OWire <$> getModify cbsWireNum sccWireNum
+makeOWire = OWire <$> getModify cbsOWireNum sccOWireNum
 
-sccWireNum :: CBState -> CBState
-sccWireNum cbs = cbs { cbsWireNum = cbsWireNum cbs + 1 }
+sccIWireNum, sccOWireNum :: CBState -> CBState
+sccIWireNum cbs = cbs { cbsIWireNum = cbsIWireNum cbs + 1 }
+sccOWireNum cbs = cbs { cbsOWireNum = cbsOWireNum cbs + 1 }

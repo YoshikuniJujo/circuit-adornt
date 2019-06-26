@@ -39,7 +39,8 @@ makeWireState dm iw = (iw, replicate d $ Bits 0)
 
 step :: Circuit -> Circuit
 step cct@Circuit { cctGate = gs, cctWireStt = wst } = let
-	ows = M.map (checkOWire cct) gs in
+	ows = fmap (checkOWire cct) gs in
+--	ows = M.map (checkOWire cct) gs in
 	cct { cctWireStt = mapWithKey (nextIWire cct ows) wst }
 
 setBits :: IWire -> Bits -> Circuit -> Circuit
