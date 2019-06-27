@@ -8,12 +8,11 @@ import Memory
 import Alu
 
 data IfId = IfId {
-	ifIdControl :: Register,
 	ifIdProgramCounter :: Register,
 	ifIdInstruction :: Register }
 	deriving Show
 
-instructionFetch :: CircuitBuilder (Clock, ProgramCounter, IfId, IWire, IWire)
+instructionFetch :: CircuitBuilder (Clock, ProgramCounter, RiscvInstMem, IfId, IWire, IWire)
 instructionFetch = do
 	cl <- clock 30
 	pc <- programCounter
@@ -26,4 +25,11 @@ instructionFetch = do
 	ifIdPc <- register
 	connectWire0 (clockSignal cl) (rgClock ifIdPc)
 	connectWire64 (pcOutput pc) (rgInput ifIdPc)
-	return (cl, pc, IfId { ifIdProgramCounter = ifIdPc }, undefined, undefined)
+	rim <- riscvInstMem 64
+	connectWire64 (pcOutput pc) (rimReadAddress rim)
+	ifIdInst <- register
+	connectWire0 (clockSignal cl) (rgClock ifIdInst)
+	connectWire64 (rimOutput rim) (rgInput ifIdInst)
+	return (cl, pc, rim,
+		IfId { ifIdProgramCounter = ifIdPc, ifIdInstruction = ifIdInst },
+		undefined, undefined)

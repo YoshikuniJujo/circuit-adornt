@@ -6,9 +6,13 @@ import Circuit
 import Clock
 import Memory
 import Pipelined
+import SampleInstructions
 
-((cl, pc, ifId, pcsrc, pcbr), cct) = makeCircuit instructionFetch
+((cl, pc, rim, ifId, pcsrc, pcbr), cct) = makeCircuit instructionFetch
 
-cct1 = resetProgramCounter pc cct
+cct1 = foldr (uncurry $ storeRiscvInstMem rim) cct
+	$ zip [0, 4 ..] sampleInstControlInstructions
 
-cct2 = clockOn cl cct1
+cct2 = resetProgramCounter pc cct1
+
+cct3 = clockOn cl cct2
