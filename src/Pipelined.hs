@@ -16,7 +16,7 @@ data IfId = IfId {
 instructionFetch :: CircuitBuilder
 	(Clock, ProgramCounter, RiscvInstMem, IfId, IWire, IWire)
 instructionFetch = do
-	cl <- clock 30
+	cl <- clock 108
 	pc <- programCounter
 	pcClocked cl pc
 	addr <- riscvAdder
@@ -48,25 +48,35 @@ data IdEx = IdEx {
 	deriving Show
 
 instructionDecode :: CircuitBuilder
-	(IWire, IWire, IWire, RiscvRegisterFile, MainController, IdEx)
+	(IWire, IWire, IWire, MainController, RiscvRegisterFile, IdEx)
 instructionDecode = do
 	(clin, clout) <- idGate0
 	(pcin, pcout) <- idGate64
+	(instin, instout) <- idGate64
 	idExPc <- register
 	connectWire0 clout (rgClock idExPc)
 	connectWire64 pcout (rgInput idExPc)
-	return (clin, pcin, undefined, undefined, undefined, IdEx {
+	mc <- mainController
+	connectWire0 clout (mainControllerExternalClockIn mc)
+	connectWire64 instout (mainControllerInstructionIn mc)
+	idExCtrl <- register
+	connectWire0 clout (rgClock idExCtrl)
+	connectWire64 (mainControllerFlagsOut mc) (rgInput idExCtrl)
+	rrf <- riscvRegisterFile
+	return (clin, pcin, instin, mc, rrf, IdEx {
+		idExControl = idExCtrl,
 		idExProgramCounter = idExPc
 		})
 
 pipelined :: CircuitBuilder (
 	Clock, ProgramCounter, RiscvInstMem, IfId,
-	RiscvRegisterFile, MainController, IdEx )
+	MainController, RiscvRegisterFile, IdEx )
 pipelined = do
 	(cl, pc, rim, ifId, _, _) <- instructionFetch
 	(idCl, idPc, idInst, rrf, mc, idEx) <- instructionDecode
 	connectWire0 (clockSignal cl) idCl
 	connectWire64 (rgOutput $ ifIdProgramCounter ifId) idPc
+	connectWire64 (rgOutput $ ifIdInstruction ifId) idInst
 	return (cl, pc, rim, ifId, rrf, mc, idEx)
 
 resetPipelineRegisters :: IfId -> IdEx -> Circuit -> Circuit
