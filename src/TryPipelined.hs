@@ -13,6 +13,8 @@ import SampleInstructions
 cct1 = foldr (uncurry $ storeRiscvInstMem rim) cct
 	$ zip [0, 4 ..] sampleInstControlInstructions
 
-cct2 = resetProgramCounter pc cct1
+cct2 = resetRegisters [ifIdProgramCounter ifId, ifIdInstruction ifId] cct1
 
-cct3 = clockOn cl cct2
+cct3 = resetProgramCounter pc cct2
+
+cct4 = clockOn cl cct3

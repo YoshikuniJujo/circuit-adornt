@@ -309,3 +309,13 @@ resetRegister rg cct = let
 	cct3 = (!! 20) . iterate step $ setBits (rgManualClock rg) (Bits 0) cct2
 	cct4 = (!! 10) . iterate step $ setBits (rgSwitch rg) (Bits 0) cct3 in
 	cct4
+
+resetRegisters :: [Register] -> Circuit -> Circuit
+resetRegisters rgs cct = let
+	cct1 = (!! 10) . iterate step $ foldr (\rg -> setBits (rgSwitch rg) (Bits 1)) cct rgs
+	cct2 = (!! 20) . iterate step
+		. flip (foldr $ \rg -> setBits (rgManualInput rg) (Bits 0)) rgs
+		$ foldr (\rg -> setBits (rgManualClock rg) (Bits 1)) cct1 rgs
+	cct3 = (!! 20) . iterate step $ foldr (\rg -> setBits (rgManualClock rg) (Bits 1)) cct2 rgs
+	cct4 = (!! 10) . iterate step $ foldr (\rg -> setBits (rgSwitch rg) (Bits 0)) cct3 rgs in
+	cct4
