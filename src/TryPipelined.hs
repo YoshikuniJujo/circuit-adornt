@@ -5,15 +5,16 @@ module TryPipelined () where
 import Circuit
 import Clock
 import Memory
+import Control
 import Pipelined
 import SampleInstructions
 
-((cl, pc, rim, ifId, pcsrc, pcbr), cct) = makeCircuit instructionFetch
+((cl, pc, rim, ifId, rrf, mc, idEx), cct) = makeCircuit pipelined
 
 cct1 = foldr (uncurry $ storeRiscvInstMem rim) cct
 	$ zip [0, 4 ..] sampleInstControlInstructions
 
-cct2 = resetRegisters [ifIdProgramCounter ifId, ifIdInstruction ifId] cct1
+cct2 = resetPipelineRegisters ifId idEx cct1
 
 cct3 = resetProgramCounter pc cct2
 
