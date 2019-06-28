@@ -5,7 +5,7 @@ module Pipelined where
 import Circuit
 import Clock
 import Memory
-import Control
+import ControlMp
 import Alu
 
 data IfId = IfId {

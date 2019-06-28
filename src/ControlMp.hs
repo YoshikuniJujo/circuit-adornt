@@ -1,7 +1,7 @@
 {-# LANGUAGE BinaryLiterals #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Control (
+module ControlMp (
 	MainController, mainController, resetMainController,
 	mainControllerExternalClockIn, mainControllerInstructionIn,
 	mainControllerFlagsOut,

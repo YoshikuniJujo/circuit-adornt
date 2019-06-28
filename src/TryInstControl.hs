@@ -5,7 +5,7 @@ module TryInstControl (trySingleCycleCct, trySingleCycleRrf) where
 import Circuit
 import Clock
 import Memory
-import Control
+import ControlMp
 import Alu
 import TrySingleCycle
 import SampleInstructions

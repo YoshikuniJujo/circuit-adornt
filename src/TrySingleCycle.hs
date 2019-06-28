@@ -10,7 +10,7 @@ import Clock
 import Memory
 import Alu
 import ImmGen
-import Control
+import ControlMp
 
 tryProgramCounter :: CircuitBuilder (Clock, ProgramCounter)
 tryProgramCounter = do

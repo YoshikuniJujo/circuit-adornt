@@ -5,7 +5,7 @@ module TryPipelined () where
 import Circuit
 import Clock
 import Memory
-import Control
+import ControlMp
 import Pipelined
 import SampleInstructions
 
