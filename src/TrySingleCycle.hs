@@ -41,7 +41,7 @@ tryInstMem n = do
 	four <- constGate64 (Bits 4)
 	connectWire64 four (addrArgB ad)
 --	connectWire64 (addrResult ad) (pcInput pc)
-	rim <- riscvInstMem 64
+	rim <- riscvInstMem 128
 	connectWire64 (pcOutput pc) (rimReadAddress rim)
 	return (cl, pc, rim, addrResult ad, pcInput pc)
 
@@ -212,7 +212,7 @@ tryControl = do
 	connectWire
 		(instructionMemoryOutput rim, 5, 7)
 		(registerFileWriteAddress rrf, 5, 0)
-	rdm <- riscvDataMem 64
+	rdm <- riscvDataMem 128
 	connectWire0 (clockSignal mcl) (rdmClock rdm)
 	connectWire64 (aluResult alu) (rdmAddress rdm)
 	connectWire64 (rrfOutput2 rrf) (rdmInput rdm)

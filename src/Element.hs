@@ -238,6 +238,13 @@ inc n o i = do
 	connectWire (xo, 1, 0) (i, 1, n)
 	return ao
 
+inc4 :: CircuitBuilder (IWire, OWire)
+inc4 = do
+	(iin, iout) <- idGate64
+	(oin, oout) <- idGate64
+	_ <- inc 3 iout oin
+	return (iin, oout)
+
 inc8 :: CircuitBuilder (IWire, OWire)
 inc8 = do
 	(iin, iout) <- idGate64
