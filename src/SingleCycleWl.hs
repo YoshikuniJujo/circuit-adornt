@@ -13,7 +13,7 @@ sampleCpuWl :: CircuitBuilder (
 	Clock, ProgramCounter, RiscvInstMem,
 	RiscvRegisterFile, RiscvAlu, RiscvDataMem )
 sampleCpuWl = do
-	(cl, pc, rim, npc, pcin) <- tryInstMem 162
+	(cl, pc, rim, npc, pcin) <- tryInstMem 70
 
 	(mctrlin, mctrlout) <- control
 

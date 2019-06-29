@@ -5,6 +5,6 @@ import Memory
 import TrySampleCpuWl
 
 main :: IO ()
-main = print . take 2000
+main = print . take 866
 	$ peekMultOWires (rrfAllOutputs trySingleCycleRrfWl)
 		<$> iterate step trySingleCycleCctWl
