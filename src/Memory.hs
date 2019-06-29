@@ -124,13 +124,13 @@ dataMemClock = rdmClock
 
 storeRiscvDataMem :: RiscvDataMem -> Word64 -> Word64 -> Circuit -> Circuit
 storeRiscvDataMem rdm adr d cct = let
-	cct1 = (!! 15) . iterate step
+	cct1 = (!! 20) . iterate step
 		$ setMultBits [sw, wcl, wwr, wwadr, wd] [1, 0, 1, adr, d] cct
 	cct2 = (!! 15) . iterate step
 		$ setMultBits [sw, wcl, wwr, wwadr, wd] [1, 0, 1, adr, d] cct1
 	cct3 = (!! 15) . iterate step
 		$ setMultBits [sw, wcl, wwr, wwadr, wd] [1, 1, 1, adr, d] cct2
-	cct4 = (!! 5) . iterate step
+	cct4 = (!! 10) . iterate step
 		$ setMultBits [sw, wcl, wwr, wwadr, wd] [1, 0, 1, adr, d] cct3
 	cct5 = (!! 15) . iterate step
 		$ setMultBits [sw, wcl, wwr, wwadr, wd] [1, 0, 0, adr, d] cct4

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module TrySingleCycle where
+module TrySingleCycleMp where
 
 import Data.Word
 
@@ -11,6 +11,8 @@ import Memory
 import Alu
 import ImmGen
 import ControlMp
+
+import SingleCycleParts
 
 tryProgramCounter :: CircuitBuilder (Clock, ProgramCounter)
 tryProgramCounter = do
@@ -30,20 +32,6 @@ tryCountup = do
 	connectWire64 four (addrArgB ad)
 	connectWire64 (addrResult ad) (pcInput pc)
 	return (cl, pc)
-
-tryInstMem :: Word8 -> CircuitBuilder (Clock, ProgramCounter, RiscvInstMem, OWire, IWire)
-tryInstMem n = do
-	cl <- clock n
-	pc <- programCounter
-	pcClocked cl pc
-	ad <- riscvAdder
-	connectWire64 (pcOutput pc) (addrArgA ad)
-	four <- constGate64 (Bits 4)
-	connectWire64 four (addrArgB ad)
---	connectWire64 (addrResult ad) (pcInput pc)
-	rim <- riscvInstMem 128
-	connectWire64 (pcOutput pc) (rimReadAddress rim)
-	return (cl, pc, rim, addrResult ad, pcInput pc)
 
 tryInstMemBranch :: CircuitBuilder (Clock, ProgramCounter, RiscvInstMem, OWire, IWire)
 tryInstMemBranch = do
@@ -179,59 +167,16 @@ tryBeq = do
 	connectWire64 pcout pcin
 	return (cl, pc, rim, rrf, sb, ig, ad)
 
-tryControl :: CircuitBuilder (
+tryControlMp :: CircuitBuilder (
 	Clock, ProgramCounter, RiscvInstMem, MainController, RiscvRegisterFile,
 	RiscvAlu, RiscvDataMem )
-tryControl = do
+tryControlMp = do
 	(mcl, pc, rim, npc, pcin) <- tryInstMem 162
+
 	mctrl <- mainController
 	connectWire0 (clockSignal mcl) (mainControllerExternalClockIn mctrl)
-	connectWire64 (rimOutput rim) (mainControllerInstructionIn mctrl)
-	(acinst, acctrl, acout) <- aluControl
-	connectWire64 (rimOutput rim) acinst
-	connectWire64 (mainControllerFlagsOut mctrl) acctrl
-	rrf <- riscvRegisterFile
-	connectWire
-		(instructionMemoryOutput rim, 5, 15)
-		(registerFileReadAddress1 rrf, 5, 0)
-	connectWire
-		(instructionMemoryOutput rim, 5, 20)
-		(registerFileReadAddress2 rrf, 5, 0)
-	alu <- riscvAlu
-	connectWire64 acout (aluOpcode alu)
-	connectWire64 (rrfOutput1 rrf) (aluArgA alu)
-	(immin, immout) <- immGen
-	connectWire64 (rimOutput rim) immin
-	(srcSel, srcReg, srcImm, srcConn) <- mux2
-	connectWire (mainControllerFlagsOut mctrl, 1, 7) (srcSel, 1, 0)
-	connectWire64 (rrfOutput2 rrf) srcReg
-	connectWire64 immout srcImm
-	connectWire64 srcConn (aluArgB alu)
-	connectWire0 (clockSignal mcl) (rrfClock rrf)
-	connectWire (mainControllerFlagsOut mctrl, 1, 5) (rrfWrite rrf, 1, 0)
-	connectWire
-		(instructionMemoryOutput rim, 5, 7)
-		(registerFileWriteAddress rrf, 5, 0)
-	rdm <- riscvDataMem 128
-	connectWire0 (clockSignal mcl) (rdmClock rdm)
-	connectWire64 (aluResult alu) (rdmAddress rdm)
-	connectWire64 (rrfOutput2 rrf) (rdmInput rdm)
-	connectWire (mainControllerFlagsOut mctrl, 1, 3) (rdmWrite rdm, 1, 0)
-	connectWire (mainControllerFlagsOut mctrl, 1, 4) (rdmRead rdm, 1, 0)
-	(rwSel, rwAlu, rwMem, rwOut) <- mux2
-	connectWire (mainControllerFlagsOut mctrl, 1, 6) (rwSel, 1, 0)
-	connectWire64 (aluResult alu) rwAlu
-	connectWire64 (rdmOutput rdm) rwMem
-	connectWire64 rwOut (rrfInput rrf)
-	addr <- riscvAdder
-	(flb, zr, tkbr) <- andGate0
-	connectWire (mainControllerFlagsOut mctrl, 1, 2) (flb, 1, 0)
-	connectWire0 (aluZero alu) zr
-	(dbr, npc', brpc, nwpc) <- mux2
-	connectWire0 tkbr dbr
-	connectWire64 npc npc'
-	connectWire64 (pcOutput pc) (addrArgA addr)
-	connectWire64 immout (addrArgB addr)
-	connectWire64 (addrResult addr) brpc
-	connectWire64 nwpc pcin
+	let	mctrlin = mainControllerInstructionIn mctrl
+		mctrlout = mainControllerFlagsOut mctrl
+
+	(rrf, alu, rdm) <- makeCpu mcl pc rim npc pcin mctrlin mctrlout
 	return (mcl, pc, rim, mctrl, rrf, alu, rdm)

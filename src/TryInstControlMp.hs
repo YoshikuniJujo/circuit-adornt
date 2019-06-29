@@ -1,16 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 
-module TryInstControl (trySingleCycleCct, trySingleCycleRrf) where
+module TryInstControlMp (trySingleCycleCctMp, trySingleCycleRrfMp) where
 
 import Circuit
 import Clock
 import Memory
 import ControlMp
 import Alu
-import TrySingleCycle
+import TrySingleCycleMp
 import SampleInstructions
 
-((cl, pc, rim, mctrl, rrf, alu, rdm), cct) = makeCircuit tryControl
+((cl, pc, rim, mctrl, rrf, alu, rdm), cct) = makeCircuit tryControlMp
 
 cct1 = foldr (uncurry $ storeRiscvInstMem rim) cct
 	$ zip [0, 4 ..] sampleInstControlInstructions
@@ -46,6 +46,6 @@ cct6 = resetProgramCounter pc cct5
 
 cct7 = stopProgramCounter pc rrf 384 cct6
 
-trySingleCycleCct = cct7
+trySingleCycleCctMp = cct7
 
-trySingleCycleRrf = rrf
+trySingleCycleRrfMp = rrf
