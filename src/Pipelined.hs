@@ -5,7 +5,7 @@ module Pipelined where
 import Circuit
 import Clock
 import Memory
-import ControlMp
+import ControlPla
 import Alu
 
 data IfId = IfId {
@@ -16,7 +16,7 @@ data IfId = IfId {
 instructionFetch :: CircuitBuilder
 	(Clock, ProgramCounter, RiscvInstMem, IfId, IWire, IWire)
 instructionFetch = do
-	cl <- clock 108
+	cl <- clock 16
 	pc <- programCounter
 	pcClocked cl pc
 	addr <- riscvAdder
@@ -48,7 +48,7 @@ data IdEx = IdEx {
 	deriving Show
 
 instructionDecode :: CircuitBuilder
-	(IWire, IWire, IWire, MainController, RiscvRegisterFile, IdEx)
+	(IWire, IWire, IWire, RiscvRegisterFile, IdEx)
 instructionDecode = do
 	(clin, clout) <- idGate0
 	(pcin, pcout) <- idGate64
@@ -56,31 +56,32 @@ instructionDecode = do
 	idExPc <- register
 	connectWire0 clout (rgClock idExPc)
 	connectWire64 pcout (rgInput idExPc)
-	mc <- mainController
-	connectWire0 clout (mainControllerExternalClockIn mc)
-	connectWire64 instout (mainControllerInstructionIn mc)
+
+	(cntrlin, cntrlout) <- controlPla
+	connectWire64 instout cntrlin
+
 	idExCtrl <- register
 	connectWire0 clout (rgClock idExCtrl)
-	connectWire64 (mainControllerFlagsOut mc) (rgInput idExCtrl)
+	connectWire64 cntrlout (rgInput idExCtrl)
 	rrf <- riscvRegisterFile
-	return (clin, pcin, instin, mc, rrf, IdEx {
+	return (clin, pcin, instin, rrf, IdEx {
 		idExControl = idExCtrl,
 		idExProgramCounter = idExPc
 		})
 
-pipelined :: CircuitBuilder (
-	Clock, ProgramCounter, RiscvInstMem, IfId,
-	MainController, RiscvRegisterFile, IdEx )
+pipelined :: CircuitBuilder
+	(Clock, ProgramCounter, RiscvInstMem, IfId, RiscvRegisterFile, IdEx )
 pipelined = do
 	(cl, pc, rim, ifId, _, _) <- instructionFetch
-	(idCl, idPc, idInst, rrf, mc, idEx) <- instructionDecode
+	(idCl, idPc, idInst, rrf, idEx) <- instructionDecode
 	connectWire0 (clockSignal cl) idCl
 	connectWire64 (rgOutput $ ifIdProgramCounter ifId) idPc
 	connectWire64 (rgOutput $ ifIdInstruction ifId) idInst
-	return (cl, pc, rim, ifId, rrf, mc, idEx)
+	return (cl, pc, rim, ifId, rrf, idEx)
 
 resetPipelineRegisters :: IfId -> IdEx -> Circuit -> Circuit
 resetPipelineRegisters ifId idEx = resetRegisters [
 	ifIdProgramCounter ifId,
 	ifIdInstruction ifId,
-	idExProgramCounter idEx ]
+	idExProgramCounter idEx,
+	idExControl idEx ]
