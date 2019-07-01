@@ -87,12 +87,16 @@ instructionDecode = do
 	connectWire (instout, 3, 12) (rgInput idExInst30_14_12, 3, 0)
 	connectWire (instout, 1, 30) (rgInput idExInst30_14_12, 1, 3)
 
+	idExWr <- register
+	connectWire0 clout (rgClock idExWr)
+	connectWire (instout, 5, 7) (rgInput idExWr, 5, 0)
+
 	return (clin, pcin, instin, rrf, IdEx {
 		idExControl = idExCtrl, idExProgramCounter = idExPc,
 		idExReadData1 = idExRd1, idExReadData2 = idExRd2,
 		idExImmediate = idExImm,
-		idExInstruction30_14_12 = idExInst30_14_12
-		})
+		idExInstruction30_14_12 = idExInst30_14_12,
+		idExWriteRegister = idExWr })
 
 pipelined :: CircuitBuilder
 	(Clock, ProgramCounter, RiscvInstMem, IfId, RiscvRegisterFile, IdEx )
@@ -113,4 +117,5 @@ resetPipelineRegisters ifId idEx = resetRegisters [
 	idExReadData1 idEx,
 	idExReadData2 idEx,
 	idExImmediate idEx,
-	idExInstruction30_14_12 idEx ]
+	idExInstruction30_14_12 idEx,
+	idExWriteRegister idEx ]
