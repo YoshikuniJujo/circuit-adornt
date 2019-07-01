@@ -44,7 +44,7 @@ data IdEx = IdEx {
 	idExReadData1 :: Register,
 	idExReadData2 :: Register,
 	idExImmediate :: Register,
-	idExInst30_14_12 :: Register,
+	idExInstruction30_14_12 :: Register,
 	idExWriteRegister :: Register }
 	deriving Show
 
@@ -82,10 +82,16 @@ instructionDecode = do
 	connectWire0 clout (rgClock idExImm)
 	connectWire64 immout (rgInput idExImm)
 
+	idExInst30_14_12 <- register
+	connectWire0 clout (rgClock idExInst30_14_12)
+	connectWire (instout, 3, 12) (rgInput idExInst30_14_12, 3, 0)
+	connectWire (instout, 1, 30) (rgInput idExInst30_14_12, 1, 3)
+
 	return (clin, pcin, instin, rrf, IdEx {
 		idExControl = idExCtrl, idExProgramCounter = idExPc,
 		idExReadData1 = idExRd1, idExReadData2 = idExRd2,
-		idExImmediate = idExImm
+		idExImmediate = idExImm,
+		idExInstruction30_14_12 = idExInst30_14_12
 		})
 
 pipelined :: CircuitBuilder
@@ -106,4 +112,5 @@ resetPipelineRegisters ifId idEx = resetRegisters [
 	idExControl idEx,
 	idExReadData1 idEx,
 	idExReadData2 idEx,
-	idExImmediate idEx ]
+	idExImmediate idEx,
+	idExInstruction30_14_12 idEx ]

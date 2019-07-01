@@ -1,7 +1,7 @@
 {-# LANGUAGE BinaryLiterals #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module ControlParts (addressSelectLogic, microMemory, aluControl) where
+module ControlParts (addressSelectLogic, microMemory, aluControl, aluControl') where
 
 import Circuit
 import Element
@@ -110,3 +110,23 @@ aluControl = do
 	connectWire (r2, 1, 0) (rsltin, 1, 2)
 	connectWire (zero, 1, 0) (rsltin, 1, 3)
 	return (instin, mctrlin, rsltout)
+
+-- op0 = op1; op1 = op0
+
+aluControl' :: CircuitBuilder (IWire, IWire, OWire)
+aluControl' = do
+	(inst30_14_12in, inst30_14_12out) <- idGate64
+	(mctrlin, mctrlout) <- idGate64
+	(op0, op1, inst12, inst13, inst30, r0, r1, r2) <- aluControlGen
+	connectWire (mctrlout, 1, 0) (op1, 1, 0)
+	connectWire (mctrlout, 1, 1) (op0, 1, 0)
+	connectWire (inst30_14_12out, 1, 0) (inst12, 1, 0)
+	connectWire (inst30_14_12out, 1, 1) (inst13, 1, 0)
+	connectWire (inst30_14_12out, 1, 3) (inst30, 1, 0)
+	zero <- constGate0 $ Bits 0
+	(rsltin, rsltout) <- idGate64
+	connectWire (r0, 1, 0) (rsltin, 1, 0)
+	connectWire (r1, 1, 0) (rsltin, 1, 1)
+	connectWire (r2, 1, 0) (rsltin, 1, 2)
+	connectWire (zero, 1, 0) (rsltin, 1, 3)
+	return (inst30_14_12in, mctrlin, rsltout)
