@@ -6,6 +6,7 @@ import Circuit
 import Clock
 import Memory
 import ControlPla
+import ImmGen
 import Alu
 
 data IfId = IfId {
@@ -75,9 +76,16 @@ instructionDecode = do
 	connectWire64 (rrfOutput1 rrf) (rgInput idExRd1)
 	connectWire64 (rrfOutput2 rrf) (rgInput idExRd2)
 
+	(immin, immout) <- immGen
+	connectWire64 instout immin
+	idExImm <- register
+	connectWire0 clout (rgClock idExImm)
+	connectWire64 immout (rgInput idExImm)
+
 	return (clin, pcin, instin, rrf, IdEx {
 		idExControl = idExCtrl, idExProgramCounter = idExPc,
-		idExReadData1 = idExRd1, idExReadData2 = idExRd2
+		idExReadData1 = idExRd1, idExReadData2 = idExRd2,
+		idExImmediate = idExImm
 		})
 
 pipelined :: CircuitBuilder
@@ -97,4 +105,5 @@ resetPipelineRegisters ifId idEx = resetRegisters [
 	idExProgramCounter idEx,
 	idExControl idEx,
 	idExReadData1 idEx,
-	idExReadData2 idEx ]
+	idExReadData2 idEx,
+	idExImmediate idEx ]
