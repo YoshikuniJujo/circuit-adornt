@@ -53,20 +53,31 @@ instructionDecode = do
 	(clin, clout) <- idGate0
 	(pcin, pcout) <- idGate64
 	(instin, instout) <- idGate64
+
 	idExPc <- register
 	connectWire0 clout (rgClock idExPc)
 	connectWire64 pcout (rgInput idExPc)
 
 	(cntrlin, cntrlout) <- controlPla
 	connectWire64 instout cntrlin
-
 	idExCtrl <- register
 	connectWire0 clout (rgClock idExCtrl)
 	connectWire64 cntrlout (rgInput idExCtrl)
+
 	rrf <- riscvRegisterFile
+	connectWire0 clout (rrfClock rrf)
+	connectWire (instout, 5, 15) (registerFileReadAddress1 rrf, 5, 0)
+	connectWire (instout, 5, 20) (registerFileReadAddress2 rrf, 5, 0)
+	idExRd1 <- register
+	idExRd2 <- register
+	connectWire0 clout (rgClock idExRd1)
+	connectWire0 clout (rgClock idExRd2)
+	connectWire64 (rrfOutput1 rrf) (rgInput idExRd1)
+	connectWire64 (rrfOutput2 rrf) (rgInput idExRd2)
+
 	return (clin, pcin, instin, rrf, IdEx {
-		idExControl = idExCtrl,
-		idExProgramCounter = idExPc
+		idExControl = idExCtrl, idExProgramCounter = idExPc,
+		idExReadData1 = idExRd1, idExReadData2 = idExRd2
 		})
 
 pipelined :: CircuitBuilder
@@ -84,4 +95,6 @@ resetPipelineRegisters ifId idEx = resetRegisters [
 	ifIdProgramCounter ifId,
 	ifIdInstruction ifId,
 	idExProgramCounter idEx,
-	idExControl idEx ]
+	idExControl idEx,
+	idExReadData1 idEx,
+	idExReadData2 idEx ]
