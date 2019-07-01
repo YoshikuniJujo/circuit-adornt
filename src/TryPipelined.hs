@@ -9,11 +9,11 @@ import ControlMp
 import Pipelined
 import SampleInstructions
 
-((cl, pc, rim, ifId, rrf, idEx), cct) = makeCircuit pipelined
+((cl, pc, rim, ifId, rrf, idEx, exMem, ar), cct) = makeCircuit pipelined
 
 cct0 = resetProgramCounter pc cct
 
-cct1 = resetPipelineRegisters ifId idEx cct0
+cct1 = resetPipelineRegisters ifId idEx exMem cct0
 
 cct2 = foldr (uncurry $ storeRiscvInstMem rim) cct1
 	$ zip [0, 4 ..] sampleInstControlInstructions
