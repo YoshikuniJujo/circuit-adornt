@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 
-module TryPipelined () where
+module TryPipelinedTrcg () where
 
 import Circuit
 import Clock
 import Memory
 import ControlMp
-import Pipelined
+import PipelinedTrcg
 import SampleInstructions
 
 ((cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb), cct) = makeCircuit pipelined

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Pipelined where
+module PipelinedTrcg where
 
 import Circuit
 import Element
