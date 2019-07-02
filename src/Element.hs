@@ -59,6 +59,9 @@ xorGate ln pi1 pi2 po = do
 xorGate0 :: CircuitBuilder (IWire, IWire, OWire)
 xorGate0 = xorGate 1 0 0 0
 
+xorGate64 :: CircuitBuilder (IWire, IWire, OWire)
+xorGate64 = xorGate 64 0 0 0
+
 orGate3 :: BitLen -> BitPosIn -> CircuitBuilder ((IWire, IWire, IWire), OWire)
 orGate3 l p = first listToTuple3 <$> multiple orGate 3 l p
 
@@ -333,3 +336,18 @@ pla8_16 tbl_ = do
 	connectWireOutsToIn outs oin
 	return (iin, oout)
 	where tbl = (numToBits 8 *** numToBits 16) <$> tbl_
+
+multiOrGate0 :: Word16 -> CircuitBuilder ([IWire], OWire)
+multiOrGate0 n = multiOrGate n 1 0
+
+equalN :: Word8 -> CircuitBuilder (IWire, IWire, OWire)
+equalN n = do
+	(xa, xb, xo) <- xorGate64
+	(ois, oo) <- multiOrGate0 $ fromIntegral n
+	zipWithM_ (\i iw -> connectWire (xo, 1, i) (iw, 1, 0)) [0 ..] ois
+	(ni, no) <- notGate0
+	connectWire0 oo ni
+	return (xa, xb, no)
+
+equal5 :: CircuitBuilder (IWire, IWire, OWire)
+equal5 = equalN 5
