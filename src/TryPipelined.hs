@@ -9,11 +9,11 @@ import ControlMp
 import Pipelined
 import SampleInstructions
 
-((cl, pc, rim, ifId, rrf, idEx, exMem, ar), cct) = makeCircuit pipelined
+((cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb), cct) = makeCircuit pipelined
 
 cct0 = resetProgramCounter pc cct
 
-cct1 = resetPipelineRegisters ifId idEx exMem cct0
+cct1 = resetPipelineRegisters ifId idEx exMem memWb cct0
 
 cct2 = foldr (uncurry $ storeRiscvInstMem rim) cct1
 	$ zip [0, 4 ..] sampleInstControlInstructions
@@ -57,6 +57,9 @@ cct3 = foldr (uncurry $ storeRiscvRegisterFile rrf) cct2 $ zip
 		7777777777,
 		1234567850 ]
 
-cct4 = resetProgramCounter pc cct3
+cct4 = foldr (uncurry $ storeRiscvDataMem rdm) cct3 $ zip [0, 72] [
+	5555555555, 9876543210 ]
 
-cct5 = clockOn cl cct4
+cct5 = resetProgramCounter pc cct4
+
+cct6 = clockOn cl cct5

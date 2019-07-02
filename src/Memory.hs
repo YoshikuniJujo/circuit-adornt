@@ -117,6 +117,11 @@ riscvDataMem n = do
 	connectWire0 fe aa
 	connectWire0 wrout ab
 	connectWire0 ao wr
+
+	delay ob 7
+	delay adr' 7
+	delay d' 7
+
 	return $ RiscvDataMem inrc inwr rd adrin d q swin outc outwr oadr od aq
 
 dataMemClock :: RiscvDataMem -> IWire
