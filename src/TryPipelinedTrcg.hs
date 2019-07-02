@@ -5,7 +5,6 @@ module TryPipelinedTrcg () where
 import Circuit
 import Clock
 import Memory
-import ControlMp
 import PipelinedTrcg
 import SampleInstructions
 
