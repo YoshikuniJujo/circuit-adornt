@@ -24,7 +24,7 @@ cct3 = foldr (uncurry $ storeRiscvRegisterFile rrf) cct2 $ zip
 		60,		-- x2
 		1234567890,	-- x3
 		0x00ff00ff002a,	-- x5
-		7777777777,	-- x6
+		0x7777777707,	-- x6
 		5555555555 ]	-- x15
 
 cct4 = resetProgramCounter pc cct3

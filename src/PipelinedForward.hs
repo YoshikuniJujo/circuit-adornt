@@ -22,6 +22,7 @@ instructionFetch :: CircuitBuilder
 	(Clock, ProgramCounter, RiscvInstMem, IfId, IWire, IWire)
 instructionFetch = do
 	cl <- clock 30
+--	cl <- clock 60
 	pc <- programCounter
 	pcClocked cl pc
 
@@ -76,7 +77,8 @@ instructionDecode = do
 	connectWire64 cntrlout (rgInput idExCtrl)
 
 	rrf <- riscvRegisterFile
-	(cl, ncl) <- notGate0
+--	(cl, ncl) <- notGate0
+	(cl, ncl) <- idGate0
 	connectWire0 clout cl
 	connectWire0 ncl (rrfClock rrf)
 	connectWire (instout, 5, 15) (registerFileReadAddress1 rrf, 5, 0)
@@ -128,12 +130,13 @@ data ExMem = ExMem {
 	exMemWriteRegister :: Register }
 	deriving Show
 
-execution :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, IWire, IWire, IWire, ExMem)
+execution :: CircuitBuilder (
+	IWire, IWire, IWire, IWire, IWire, IWire, IWire, IWire, ExMem,
+	IWire, IWire, IWire, IWire )
 execution = do
 	(clin, clout) <- idGate0
 	(ctrlin, ctrlout) <- idGate64
 	(immin, immout) <- idGate64
-	(rd2in, rd2out) <- idGate64
 
 	exMemCtrl <- register
 	connectWire0 clout (rgClock exMemCtrl)
@@ -145,15 +148,29 @@ execution = do
 	connectWire64 immout (addrArgB addr)
 	connectWire64 (addrResult addr) (rgInput exMemPa)
 
-	(as, rd2, imm, aluB) <- mux2
-	connectWire (ctrlout, 1, 5) (as, 1, 0)
-	connectWire64 rd2out rd2
-	connectWire64 immout imm
+	alu <- riscvAlu
 	(i30_14_12, aluOp, aluCon) <- aluControl'
 	connectWire (ctrlout, 2, 6) (aluOp, 2, 0)
-	alu <- riscvAlu
 	connectWire64 aluCon (aluOpcode alu)
+
+	(mwRsltin, mwRsltout) <- idGate64
+	(emRsltin, emRsltout) <- idGate64
+
+	(fa, aluAin, mwRslt, emRslt, aluAout) <- mux3
+	connectWire64 mwRsltout mwRslt
+	connectWire64 emRsltout emRslt
+	connectWire64 aluAout (aluArgA alu)
+
+	(fb, aluBin, mwRslt', emRslt', aluBout) <- mux3
+	connectWire64 mwRsltout mwRslt'
+	connectWire64 emRsltout emRslt'
+
+	(as, rd2, imm, aluB) <- mux2
+	connectWire (ctrlout, 1, 5) (as, 1, 0)
+	connectWire64 aluBout rd2
+	connectWire64 immout imm
 	connectWire64 aluB (aluArgB alu)
+
 	exMemZ <- register
 	exMemAr <- register
 	connectWire0 clout (rgClock exMemZ)
@@ -163,19 +180,20 @@ execution = do
 
 	exMemRd2 <- register
 	connectWire0 clout (rgClock exMemRd2)
-	connectWire64 rd2out (rgInput exMemRd2)
+	connectWire64 aluBout (rgInput exMemRd2)
 
 	exMemWr <- register
 	connectWire0 clout (rgClock exMemWr)
 
 	return (clin, ctrlin, addrArgA addr,
-		aluArgA alu, rd2in, immin, i30_14_12, rgInput exMemWr,
+		aluAin, aluBin, immin, i30_14_12, rgInput exMemWr,
 		ExMem {	exMemControl = exMemCtrl,
 			exMemProgramAddress = exMemPa,
 			exMemZero = exMemZ,
 			exMemAluResult = exMemAr,
 			exMemReadData2 = exMemRd2,
-			exMemWriteRegister = exMemWr })
+			exMemWriteRegister = exMemWr },
+		fa, fb, mwRsltin, emRsltin)
 
 data MemWb = MemWb {
 	memWbControl :: Register,
@@ -223,7 +241,7 @@ dataAccess pcSrc pcBr = do
 			memWbAluResult = memWbAr,
 			memWbWriteRegister = memWbWr })
 
-writeBack :: IWire -> IWire -> IWire -> CircuitBuilder (IWire, IWire, IWire, IWire)
+writeBack :: IWire -> IWire -> IWire -> CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
 writeBack rgwr wrrg wrdt = do
 	(ctrlin, ctrlout) <- idGate64
 	(rdin, rdout) <- idGate64
@@ -240,7 +258,7 @@ writeBack rgwr wrrg wrdt = do
 
 	connectWire64 wrout wrrg
 
-	return (ctrlin, rdin, arin, wrin)
+	return (ctrlin, rdin, arin, wrin, wd)
 
 pipelined :: CircuitBuilder (
 	Clock, ProgramCounter, RiscvInstMem, IfId,
@@ -251,7 +269,8 @@ pipelined = do
 	connectWire0 (clockSignal cl) idCl
 	connectWire64 (rgOutput $ ifIdProgramCounter ifId) idPc
 	connectWire64 (rgOutput $ ifIdInstruction ifId) idInst
-	(exCl, exCtrl, exPc, rd1, rd2, imm, i30_14_12, wr, exMem) <- execution
+	(exCl, exCtrl, exPc, rd1, rd2, imm, i30_14_12, wr, exMem,
+		fain, fbin, mwRslt, emRslt) <- execution
 	connectWire0 (clockSignal cl) exCl
 	connectWire64 (rgOutput $ idExControl idEx) exCtrl
 	connectWire64 (rgOutput $ idExProgramCounter idEx) exPc
@@ -268,7 +287,7 @@ pipelined = do
 	connectWire64 (rgOutput $ exMemAluResult exMem) daAr
 	connectWire64 (rgOutput $ exMemReadData2 exMem) daWd
 	connectWire64 (rgOutput $ exMemWriteRegister exMem) daWr
-	(wbCtrl, wbRd, wbAr, wbWr) <- writeBack rgwr wrrg wrdt
+	(wbCtrl, wbRd, wbAr, wbWr, wrDt) <- writeBack rgwr wrrg wrdt
 	connectWire64 (rgOutput $ memWbControl memWb) wbCtrl
 	connectWire64 (rgOutput $ memWbReadData memWb) wbRd
 	connectWire64 (rgOutput $ memWbAluResult memWb) wbAr
@@ -281,6 +300,11 @@ pipelined = do
 	connectWire64 (rgOutput $ memWbWriteRegister memWb) memWbRd
 	connectWire64 (rgOutput $ idExRegisterSource1 idEx) rs1
 	connectWire64 (rgOutput $ idExRegisterSource2 idEx) rs2
+
+	connectWire64 fa fain
+	connectWire64 fb fbin
+	connectWire64 wrDt mwRslt
+	connectWire64 (rgOutput $ exMemAluResult exMem) emRslt
 
 	return (cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb, fa, fb)
 
