@@ -53,3 +53,11 @@ sampleInstControlInstructions = [
 	sampleLoadInst, sampleStoreInst,
 	sampleSubInst, sampleAddInst, sampleBeqInst ] ++ (encodeInst <$> [
 	Nop, Nop, Nop, Nop, Add (Reg 3) (Reg 1) (Reg 10) ])
+
+sampleDataHazards :: [Inst]
+sampleDataHazards = [
+	Sub (Reg 2) (Reg 1) (Reg 3),
+	And (Reg 12) (Reg 2) (Reg 5),
+	Or (Reg 13) (Reg 6) (Reg 2),
+	Add (Reg 14) (Reg 2) (Reg 2),
+	Store (Reg 15) 100 (Reg 2) ]

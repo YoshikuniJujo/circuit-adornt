@@ -13,6 +13,7 @@ type Imm = Word16
 data Inst
 	= Load Reg Imm Reg | Store Reg Imm Reg
 	| Add Reg Reg Reg | Sub Reg Reg Reg
+	| And Reg Reg Reg | Or Reg Reg Reg
 	| Beq Reg Reg Offset | Nop
 	deriving Show
 
@@ -21,16 +22,23 @@ encodeInst (Load rd imm rs1) = fromIntegral . packLoad $ LLoad rd imm rs1
 encodeInst (Store rs2 imm rs1) = fromIntegral . packStore $ SStore rs2 imm rs1
 encodeInst (Add rd rs1 rs2) = fromIntegral . packRtypeInst $ AAdd rd rs1 rs2
 encodeInst (Sub rd rs1 rs2) = fromIntegral . packRtypeInst $ SSub rd rs1 rs2
+encodeInst (And rd rs1 rs2) = fromIntegral . packRtypeInst $ AAnd rd rs1 rs2
+encodeInst (Or rd rs1 rs2) = fromIntegral . packRtypeInst $ OOr rd rs1 rs2
 encodeInst (Beq rs1 rs2 os) = fromIntegral . packSbtype . beqToWords $ BBeq rs1 rs2 os
 encodeInst Nop = fromIntegral . packSbtype $ beqToWords NNop
 
-data Rtype = AAdd Reg Reg Reg | SSub Reg Reg Reg deriving Show
+data Rtype = AAdd Reg Reg Reg | SSub Reg Reg Reg | AAnd Reg Reg Reg | OOr Reg Reg Reg
+	deriving Show
 
 packRtypeInst :: Rtype -> Word32
 packRtypeInst (AAdd (Reg rd) (Reg rs1) (Reg rs2)) =
 	packRType [0, rs2, rs1, 0, rd, 0b0110011]
 packRtypeInst (SSub (Reg rd) (Reg rs1) (Reg rs2)) =
 	packRType [0b0100000, rs2, rs1, 0, rd, 0b0110011]
+packRtypeInst (AAnd (Reg rd) (Reg rs1) (Reg rs2)) =
+	packRType [0b0000000, rs2, rs1, 0b111, rd, 0b0110011]
+packRtypeInst (OOr (Reg rd) (Reg rs1) (Reg rs2)) =
+	packRType [0b0000000, rs2, rs1, 0b110, rd, 0b0110011]
 
 -- R type: 7 5 5 3 5 7
 
