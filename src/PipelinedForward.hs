@@ -77,10 +77,15 @@ instructionDecode = do
 	connectWire64 cntrlout (rgInput idExCtrl)
 
 	rrf <- riscvRegisterFile
---	(cl, ncl) <- notGate0
-	(cl, ncl) <- idGate0
+
+	(cl, ncl) <- notGate0
+	(cla, clb, clo) <- andGate0
 	connectWire0 clout cl
-	connectWire0 ncl (rrfClock rrf)
+	connectWire0 ncl cla
+	connectWire0 ncl clb
+	delay cla 15
+	connectWire0 clo (rrfClock rrf)
+
 	connectWire (instout, 5, 15) (registerFileReadAddress1 rrf, 5, 0)
 	connectWire (instout, 5, 20) (registerFileReadAddress2 rrf, 5, 0)
 	idExRd1 <- register
