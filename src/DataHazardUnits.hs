@@ -95,3 +95,17 @@ memHazard = do
 	connectWire0 rslt1 fain
 	connectWire0 rslt2 fbin
 	return (cntrlin, rdin, rs1, rs2, faout, fbout)
+
+detectLoadHazard :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
+detectLoadHazard = do
+	(idExMemRead, collisionin, hazard) <- andGate0
+	(collision1, collision2, collisionout) <- orGate0
+	connectWire0 collisionout collisionin
+	(idExRdin, idExRdout) <- idGate64
+	(idExRd, ifIdRs1, eq1) <- equal5
+	(idExRd', ifIdRs2, eq2) <- equal5
+	connectWire64 idExRdout idExRd
+	connectWire64 idExRdout idExRd'
+	connectWire0 eq1 collision1
+	connectWire0 eq2 collision2
+	return (idExMemRead, idExRdin, ifIdRs1, ifIdRs2, hazard)

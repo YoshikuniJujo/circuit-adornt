@@ -320,11 +320,18 @@ pipelined = do
 	connectWire64 wrDt mwRslt
 	connectWire64 (rgOutput $ exMemAluResult exMem) emRslt
 
-	one <- constGate0 (Bits 1)
-	connectWriteProgramCounter one pc
-	connectWriteIfId one ifId
-	zero <- constGate0 (Bits 0)
-	connectWire0 zero stall
+	(idExMemRead, idExRd, ifIdRs1, ifIdRs2, loadHazard) <- detectLoadHazard
+
+	connectWire (rgOutput $ idExControl idEx, 1, 3) (idExMemRead, 1, 0)
+	connectWire64 (rgOutput $ idExWriteRegister idEx) idExRd
+	connectWire (rgwfOutput $ ifIdInstruction ifId, 5, 15) (ifIdRs1, 5, 0)
+	connectWire (rgwfOutput $ ifIdInstruction ifId, 5, 20) (ifIdRs2, 5, 0)
+	(loadHazardin, notLoadHazard) <- notGate0
+	connectWire0 loadHazard loadHazardin
+
+	connectWriteProgramCounter notLoadHazard pc
+	connectWriteIfId notLoadHazard ifId
+	connectWire0 loadHazard stall
 
 	return (cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb)
 
