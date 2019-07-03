@@ -267,7 +267,7 @@ writeBack rgwr wrrg wrdt = do
 
 pipelined :: CircuitBuilder (
 	Clock, ProgramCounter, RiscvInstMem, IfId,
-	RiscvRegisterFile, IdEx, ExMem, RiscvDataMem, MemWb, OWire, OWire )
+	RiscvRegisterFile, IdEx, ExMem, RiscvDataMem, MemWb )
 pipelined = do
 	(cl, pc, rim, ifId, pcSrc, pcBr) <- instructionFetch
 	(idCl, idPc, idInst, rrf, idEx, rgwr, wrrg, wrdt) <- instructionDecode
@@ -311,7 +311,7 @@ pipelined = do
 	connectWire64 wrDt mwRslt
 	connectWire64 (rgOutput $ exMemAluResult exMem) emRslt
 
-	return (cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb, fa, fb)
+	return (cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb)
 
 resetPipelineRegisters :: IfId -> IdEx -> ExMem -> MemWb -> Circuit -> Circuit
 resetPipelineRegisters ifId idEx exMem memWb = resetRegisters [

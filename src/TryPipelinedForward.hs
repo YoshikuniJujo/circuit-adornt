@@ -8,7 +8,7 @@ import Memory
 import PipelinedForward
 import SampleInstructions
 
-((cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb, fa, fb), cct) = makeCircuit pipelined
+((cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb), cct) = makeCircuit pipelined
 
 cct0 = resetProgramCounter pc cct
 

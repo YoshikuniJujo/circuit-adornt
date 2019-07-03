@@ -61,3 +61,11 @@ sampleDataHazards = [
 	Or (Reg 13) (Reg 6) (Reg 2),
 	Add (Reg 14) (Reg 2) (Reg 2),
 	Store (Reg 15) 100 (Reg 2) ]
+
+sampleLoadHazards :: [Inst]
+sampleLoadHazards = [
+	Load (Reg 2) 20 (Reg 1),
+	And (Reg 4) (Reg 2) (Reg 5),
+	Or (Reg 8) (Reg 2) (Reg 6),
+	Add (Reg 9) (Reg 4) (Reg 2),
+	Sub (Reg 1) (Reg 6) (Reg 7) ]
