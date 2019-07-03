@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module PipelinedForward where
+module PipelinedStall where
 
 import Circuit
 import Element
@@ -14,8 +14,8 @@ import Alu
 import DataHazardUnits
 
 data IfId = IfId {
-	ifIdProgramCounter :: Register,
-	ifIdInstruction :: Register }
+	ifIdProgramCounter :: RegisterWithWriteFlag,
+	ifIdInstruction :: RegisterWithWriteFlag }
 	deriving Show
 
 instructionFetch :: CircuitBuilder
@@ -34,18 +34,23 @@ instructionFetch = do
 	connectWire64 (addrResult addr) pc'
 	connectWire64 pcout (pcInput pc)
 
-	ifIdPc <- register
-	connectWire0 (clockSignal cl) (rgClock ifIdPc)
-	connectWire64 (pcOutput pc) (rgInput ifIdPc)
+	ifIdPc <- registerWithWriteFlag
+	connectWire0 (clockSignal cl) (rgwfClock ifIdPc)
+	connectWire64 (pcOutput pc) (rgwfInput ifIdPc)
 	rim <- riscvInstMem 64
 	connectWire64 (pcOutput pc) (rimReadAddress rim)
-	ifIdInst <- register
-	connectWire0 (clockSignal cl) (rgClock ifIdInst)
-	connectWire64 (rimOutput rim) (rgInput ifIdInst)
+	ifIdInst <- registerWithWriteFlag
+	connectWire0 (clockSignal cl) (rgwfClock ifIdInst)
+	connectWire64 (rimOutput rim) (rgwfInput ifIdInst)
 	return (cl, pc, rim,
 		IfId {	ifIdProgramCounter = ifIdPc,
 			ifIdInstruction = ifIdInst },
 		pcSrc, pcBr)
+
+connectWriteIfId :: OWire -> IfId -> CircuitBuilder ()
+connectWriteIfId wf ifId = do
+	connectWire0 wf (rgwfWrite $ ifIdProgramCounter ifId)
+	connectWire0 wf (rgwfWrite $ ifIdInstruction ifId)
 
 data IdEx = IdEx {
 	idExControl :: Register,
@@ -60,7 +65,7 @@ data IdEx = IdEx {
 	deriving Show
 
 instructionDecode :: CircuitBuilder
-	(IWire, IWire, IWire, RiscvRegisterFile, IdEx, IWire, IWire, IWire)
+	(IWire, IWire, IWire, RiscvRegisterFile, IdEx, IWire, IWire, IWire, IWire)
 instructionDecode = do
 	(clin, clout) <- idGate0
 	(pcin, pcout) <- idGate64
@@ -74,7 +79,11 @@ instructionDecode = do
 	connectWire64 instout cntrlin
 	idExCtrl <- register
 	connectWire0 clout (rgClock idExCtrl)
-	connectWire64 cntrlout (rgInput idExCtrl)
+	(stall, cntrlNotStall, zeroin, cntrlStallOut) <- mux2
+	connectWire64 cntrlout cntrlNotStall
+	zero <- constGate64 (Bits 0)
+	connectWire64 zero zeroin
+	connectWire64 cntrlStallOut (rgInput idExCtrl)
 
 	rrf <- riscvRegisterFile
 
@@ -124,7 +133,7 @@ instructionDecode = do
 			idExInstruction30_14_12 = idExInst30_14_12,
 			idExRegisterSource1 = idExRs1, idExRegisterSource2 = idExRs2,
 			idExWriteRegister = idExWr },
-		rrfWrite rrf, rrfWriteAddress rrf, rrfInput rrf)
+		rrfWrite rrf, rrfWriteAddress rrf, rrfInput rrf, stall)
 
 data ExMem = ExMem {
 	exMemControl :: Register,
@@ -270,10 +279,10 @@ pipelined :: CircuitBuilder (
 	RiscvRegisterFile, IdEx, ExMem, RiscvDataMem, MemWb )
 pipelined = do
 	(cl, pc, rim, ifId, pcSrc, pcBr) <- instructionFetch
-	(idCl, idPc, idInst, rrf, idEx, rgwr, wrrg, wrdt) <- instructionDecode
+	(idCl, idPc, idInst, rrf, idEx, rgwr, wrrg, wrdt, stall) <- instructionDecode
 	connectWire0 (clockSignal cl) idCl
-	connectWire64 (rgOutput $ ifIdProgramCounter ifId) idPc
-	connectWire64 (rgOutput $ ifIdInstruction ifId) idInst
+	connectWire64 (rgwfOutput $ ifIdProgramCounter ifId) idPc
+	connectWire64 (rgwfOutput $ ifIdInstruction ifId) idInst
 	(exCl, exCtrl, exPc, rd1, rd2, imm, i30_14_12, wr, exMem,
 		fain, fbin, mwRslt, emRslt) <- execution
 	connectWire0 (clockSignal cl) exCl
@@ -311,26 +320,34 @@ pipelined = do
 	connectWire64 wrDt mwRslt
 	connectWire64 (rgOutput $ exMemAluResult exMem) emRslt
 
+	one <- constGate0 (Bits 1)
+	connectWriteProgramCounter one pc
+	connectWriteIfId one ifId
+	zero <- constGate0 (Bits 0)
+	connectWire0 zero stall
+
 	return (cl, pc, rim, ifId, rrf, idEx, exMem, rdm, memWb)
 
 resetPipelineRegisters :: IfId -> IdEx -> ExMem -> MemWb -> Circuit -> Circuit
-resetPipelineRegisters ifId idEx exMem memWb = resetRegisters [
-	ifIdProgramCounter ifId,
-	ifIdInstruction ifId,
-	idExProgramCounter idEx,
-	idExControl idEx,
-	idExReadData1 idEx,
-	idExReadData2 idEx,
-	idExImmediate idEx,
-	idExInstruction30_14_12 idEx,
-	idExWriteRegister idEx,
-	exMemControl exMem,
-	exMemProgramAddress exMem,
-	exMemZero exMem,
-	exMemAluResult exMem,
-	exMemReadData2 exMem,
-	exMemWriteRegister exMem,
-	memWbControl memWb,
-	memWbReadData memWb,
-	memWbAluResult memWb,
-	memWbWriteRegister memWb ]
+resetPipelineRegisters ifId idEx exMem memWb cct = let
+	cct1 = resetRegisters [
+		idExProgramCounter idEx,
+		idExControl idEx,
+		idExReadData1 idEx,
+		idExReadData2 idEx,
+		idExImmediate idEx,
+		idExInstruction30_14_12 idEx,
+		idExWriteRegister idEx,
+		exMemControl exMem,
+		exMemProgramAddress exMem,
+		exMemZero exMem,
+		exMemAluResult exMem,
+		exMemReadData2 exMem,
+		exMemWriteRegister exMem,
+		memWbControl memWb,
+		memWbReadData memWb,
+		memWbAluResult memWb,
+		memWbWriteRegister memWb ] cct
+	cct2 = resetRegisterWithWriteFlag (ifIdProgramCounter ifId) cct1
+	cct3 = resetRegisterWithWriteFlag (ifIdInstruction ifId) cct2 in
+	cct3

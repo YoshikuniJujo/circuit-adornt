@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Forwarding where
+module DataHazardUnits where
 
 import Circuit
 import Element

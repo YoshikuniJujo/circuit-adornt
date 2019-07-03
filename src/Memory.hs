@@ -156,7 +156,7 @@ registerGen = do
 
 data ProgramCounter = ProgramCounter {
 	pcSwitch :: IWire, pcManualClock :: IWire, pcManualInput :: IWire,
-	pcClock :: IWire, pcInput :: IWire, pcOutput :: OWire } deriving Show
+	pcClock :: IWire, pcWrite :: IWire, pcInput :: IWire, pcOutput :: OWire } deriving Show
 
 programCounter :: CircuitBuilder ProgramCounter
 programCounter = do
@@ -168,20 +168,32 @@ programCounter = do
 	connectWire0 swout sw'
 	connectWire64 oc c
 	connectWire64 oi d
-	return $ ProgramCounter swin mc mi cc ci q
+
+	(ccin, wr, ccout) <- andGate0
+	connectWire0 ccout cc
+	return $ ProgramCounter {
+		pcSwitch = swin, pcManualClock = mc, pcManualInput = mi,
+		pcClock = ccin, pcWrite = wr, pcInput = ci, pcOutput = q }
 
 pcClocked :: Clock -> ProgramCounter -> CircuitBuilder ()
 pcClocked cl pc = connectWire0 (clockSignal cl) (pcClock pc)
 
 resetProgramCounter :: ProgramCounter -> Circuit -> Circuit
-resetProgramCounter pc = setBits (pcSwitch pc) (Bits 0)
-	. foldr (.) id (replicate 10 $ step
-		. setBits (pcManualClock pc) (wordToBits 0)
-		. setBits (pcManualInput pc) (wordToBits 0))
-	. foldr (.) id (replicate 20 $ step
-		. setBits (pcManualClock pc) (wordToBits 1)
-		. setBits (pcManualInput pc) (wordToBits 0))
-	. setBits (pcSwitch pc) (Bits 1)
+resetProgramCounter pc cct = let
+	cct1 = resetProgramCounterRaw pc cct
+	cct2 = setBits (pcWrite pc) (Bits 1) cct1 in
+	cct2
+
+resetProgramCounterRaw :: ProgramCounter -> Circuit -> Circuit
+resetProgramCounterRaw pc =
+	setBits (pcSwitch pc) (Bits 0)
+		. foldr (.) id (replicate 10 $ step
+			. setBits (pcManualClock pc) (wordToBits 0)
+			. setBits (pcManualInput pc) (wordToBits 0))
+		. foldr (.) id (replicate 20 $ step
+			. setBits (pcManualClock pc) (wordToBits 1)
+			. setBits (pcManualInput pc) (wordToBits 0))
+		. setBits (pcSwitch pc) (Bits 1)
 
 stopProgramCounter :: ProgramCounter -> RiscvRegisterFile -> Word16 -> Circuit -> Circuit
 stopProgramCounter pc rf n_ = setBits (pcSwitch pc) (Bits 0) . setBits (rrfSwitch rf) (Bits 0)
@@ -196,6 +208,9 @@ setProgramCounter pc w = setBits (pcInput pc) (wordToBits w)
 
 peekProgramCounter :: ProgramCounter -> Circuit -> Word64
 peekProgramCounter pc = bitsToWord . peekOWire (pcOutput pc)
+
+connectWriteProgramCounter :: OWire -> ProgramCounter -> CircuitBuilder ()
+connectWriteProgramCounter wf pc = connectWire0 wf (pcWrite pc)
 
 type RegisterFileWires = (IWire, IWire, IWire, IWire, IWire, IWire, OWire, OWire, [OWire])
 
@@ -323,4 +338,36 @@ resetRegisters rgs cct = let
 		$ foldr (\rg -> setBits (rgManualClock rg) (Bits 1)) cct1 rgs
 	cct3 = (!! 20) . iterate step $ foldr (\rg -> setBits (rgManualClock rg) (Bits 1)) cct2 rgs
 	cct4 = (!! 10) . iterate step $ foldr (\rg -> setBits (rgSwitch rg) (Bits 0)) cct3 rgs in
+	cct4
+
+data RegisterWithWriteFlag = RegisterWithWriteFlag {
+	rgwfSwitch :: IWire, rgwfManualClock :: IWire, rgwfManualInput :: IWire,
+	rgwfClock :: IWire, rgwfWrite :: IWire, rgwfInput :: IWire, rgwfOutput :: OWire }
+	deriving Show
+
+registerWithWriteFlag :: CircuitBuilder RegisterWithWriteFlag
+registerWithWriteFlag = do
+	(swin, swout) <- idGate0
+	(sw, cc, mc, oc) <- mux2
+	(sw', ci, mi, oi) <- mux2
+	(c, d, q, _q_) <- dflipflop
+	connectWire0 swout sw
+	connectWire0 swout sw'
+	connectWire0 oc c
+	connectWire64 oi d
+
+	(ccin, wr, ccout) <- andGate0
+	connectWire0 ccout cc
+	return $ RegisterWithWriteFlag {
+		rgwfSwitch = swin, rgwfManualClock = mc, rgwfManualInput = mi,
+		rgwfClock = ccin, rgwfWrite = wr,  rgwfInput = ci, rgwfOutput = q }
+
+resetRegisterWithWriteFlag :: RegisterWithWriteFlag -> Circuit -> Circuit
+resetRegisterWithWriteFlag rg cct = let
+	cct1 = (!! 10) . iterate step $ setBits (rgwfSwitch rg) (Bits 1) cct
+	cct2 = (!! 20) . iterate step
+		. setBits (rgwfManualInput rg) (Bits 0)
+		$ setBits (rgwfManualClock rg) (Bits 1) cct1
+	cct3 = (!! 20) . iterate step $ setBits (rgwfManualClock rg) (Bits 0) cct2
+	cct4 = (!! 10) . iterate step $ setBits (rgwfSwitch rg) (Bits 0) cct3 in
 	cct4
