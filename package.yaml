@@ -2,17 +2,17 @@ name:                circuit-adornt
 version:             0.1.0.0
 github:              "githubuser/circuit-adornt"
 license:             BSD3
-author:              "Yoshikuni Jujo"
-maintainer:          "yoshikuni.jujo.pc@gmail.com"
-copyright:           "2019 Yoshikuni Jujo"
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2019 Author name here"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
-synopsis:            circuit simulator
-category:            CircuitSimulator
+# synopsis:            Short description of your package
+# category:            Web
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -21,9 +21,6 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- monads-tf
-- containers
-- array
 
 library:
   source-dirs: src
@@ -31,42 +28,6 @@ library:
 executables:
   circuit-adornt-exe:
     main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - circuit-adornt
-  trySingleCycleMp:
-    main:                trySingleCycleMp.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - circuit-adornt
-  trySingleCycleWl:
-    main:                trySingleCycleWl.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - circuit-adornt
-  trySingleCycleWlS:
-    main:                trySingleCycleWlS.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - circuit-adornt
-  trySingleCyclePla:
-    main:                trySingleCyclePla.hs
     source-dirs:         app
     ghc-options:
     - -threaded
