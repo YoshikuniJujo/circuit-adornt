@@ -61,8 +61,9 @@ inverse o i = do
 	zipWithM_ connectWire64 [o, no] [ni, i]
 obverse = connectWire64
 
-multiAndGate :: Word16 -> CircuitBuilder ([IWire], OWire)
+multiAndGate, multiOrGate :: Word16 -> CircuitBuilder ([IWire], OWire)
 multiAndGate = multiple andGate
+multiOrGate = multiple orGate
 
 multiple :: CircuitBuilder (IWire, IWire, OWire) ->
 	Word16 -> CircuitBuilder ([IWire], OWire)
@@ -77,3 +78,30 @@ multiple g n = do
 	connectWire64 o1 a
 	connectWire64 o2 b
 	return (is1 ++ is2, o)
+
+mux2 :: CircuitBuilder (IWire, IWire, IWire, OWire)
+mux2 = do
+	(sl, is, o) <- multiplexer 2
+	let	(i0, i1) = listToTuple2 is
+	return (sl, i0, i1, o)
+
+mux3 :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
+mux3 = do
+	(sl, is, o) <- multiplexer 3
+	let	(i0, i1, i2) = listToTuple3 is
+	return (sl, i0, i1, i2, o)
+
+multiplexer :: Word16 -> CircuitBuilder (IWire, [IWire], OWire)
+multiplexer n = do
+	(slin, slout) <- idGate
+	(dins, douts) <- decoder n
+	for_ (zip [0 ..] dins)
+		$ \(i, din) -> connectWire (slout, 1, i) (din, 1, 0)
+	(as, bs, os) <- unzip3 <$> fromIntegral n `replicateM` andGate
+	(ois, oo) <- multiOrGate n
+	zipWithM_ connectWire0_64 douts as
+	zipWithM_ connectWire64 os ois
+	return (slin, bs, oo)
+
+connectWire0_64 :: OWire -> IWire -> CircuitBuilder ()
+connectWire0_64 o i = connectWire (o, 1, 0) (i, 64, 0)
