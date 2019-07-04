@@ -57,7 +57,7 @@ nextIWireFromOWire wst ows fow ow@(OWire _ msw_) b = fromMaybe b $ do
 	case msw_ of
 		Just sw_ -> do
 			sw <- wst !!? sw_
-			guard $ sw /= Bits 0
+			guard $ testBit sw 0
 		Nothing -> return ()
 	return $ nextIWireFromOWire' ows fow ow b
 

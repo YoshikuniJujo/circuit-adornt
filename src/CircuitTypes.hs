@@ -24,6 +24,9 @@ andBits, orBits :: Bits -> Bits -> Bits
 andBits (Bits v) (Bits w) = Bits $ v .&. w
 orBits (Bits v) (Bits w) = Bits $ v .|. w
 
+testBit :: Bits -> Word8 -> Bool
+testBit (Bits w) i = B.testBit w $ fromIntegral i
+
 type FromOWire = ((BitLen, BitPosOut), (BitLen, BitPosIn))
 
 fromOWire :: FromOWire -> Bits -> Bits -> Bits
