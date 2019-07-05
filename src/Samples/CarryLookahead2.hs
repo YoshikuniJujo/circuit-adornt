@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Samples.CarryLookahead2 where
+module Samples.CarryLookahead2 (carries) where
 
 import Data.Word
 
