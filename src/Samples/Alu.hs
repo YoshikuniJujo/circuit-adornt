@@ -25,7 +25,7 @@ alu = do
 	(oa, ob, oo) <- orGate
 	(ci, ca, cb, cs, co) <- carries
 	(xc, xa, xb, xo) <- xorGate3
-	(op, a, o, s, r) <- mux3
+	(op, a, o, s, slt, r) <- mux4
 	connectWire64 maout `mapM_` [aa, oa, ca, xa]
 	connectWire64 mbout `mapM_` [ab, ob, cb, xb]
 	connectWire64 cs xc
@@ -36,4 +36,11 @@ alu = do
 	(ofci, ofco, ovfl) <- xorGate
 	connectWire (cs, 1, 63) (ofci, 1, 0)
 	connectWire0 co ofco
+
+	(flb, ovfl', lt) <- xorGate
+	connectWire (xo, 1, 63) (flb, 1, 0)
+	connectWire0 ovfl ovfl'
+	connectWire0 lt slt
+	zero <- constGate $ Bits 0
+	connectWire (zero, 63, 1) (slt, 63, 1)
 	return (ainv, binv, op, ci, ain, bin, r, ovfl)
