@@ -83,6 +83,14 @@ checkOWire = calcGate
 
 connectWire :: (OWire, BitLen, BitPosOut) ->
 	(IWire, BitLen, BitPosIn) -> CircuitBuilder ()
+connectWire (_, obl, obp) (_, ibl, ibp)
+	| obl <= 0 || ibl <= 0 =
+		error "connectWire: length should be larger than 0"
+	| obp < 0 || ibp < 0 =
+		error "connectWire: position should be larger than or equal to 0"
+	| obl + obp > 64 || ibl + ibp > 64 = error
+		$ "connectWire: length + position should be less then or equal to 64\n" ++
+			"\tobl: " ++ show obl ++ " obp: " ++ show obp ++ " ibl: " ++ show ibl ++ " ibp: " ++ show ibp
 connectWire (o, obl, obp) (i, ibl, ibp) =
 	modify $ insConn ((obl, obp), (ibl, ibp))
 	where insConn f cbs = cbs {
