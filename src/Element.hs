@@ -106,3 +106,14 @@ multiplexer n = do
 	zipWithM_ connectWire0_64 douts as
 	zipWithM_ connectWire64 os ois
 	return (slin, bs, oo)
+
+testZero :: CircuitBuilder (IWire, OWire)
+testZero = do
+	(iin, iout) <- idGate
+	(ois, oo) <- multiOrGate 64
+	(ni, no) <- notGate
+	for_ (zip [0 ..] ois) $ \(i, oi) -> connectWire (iout, 1, i) (oi, 1, 0)
+	connectWire0 oo ni
+	(oin, oout) <- idGate
+	connectWire0 no oin
+	return (iin, oout)

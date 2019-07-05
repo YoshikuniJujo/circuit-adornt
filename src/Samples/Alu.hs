@@ -6,7 +6,7 @@ import Circuit
 import Element
 import Samples.CarryLookahead2
 
-alu :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, IWire, OWire, OWire)
+alu :: CircuitBuilder (IWire, IWire, IWire, OWire, OWire, OWire)
 alu = do
 	(ain, aout) <- idGate
 	(bin, bout) <- idGate
@@ -43,4 +43,13 @@ alu = do
 	connectWire0 lt slt
 	zero <- constGate $ Bits 0
 	connectWire (zero, 63, 1) (slt, 63, 1)
-	return (ainv, binv, op, ci, ain, bin, r, ovfl)
+
+	(zin, zout) <- testZero
+	connectWire64 r zin
+
+	(clin, clout) <- idGate
+	connectWire (clout, 1, 3) (ainv, 1, 0)
+	connectWire (clout, 1, 2) (binv, 1, 0)
+	connectWire (clout, 1, 2) (ci, 1, 0)
+	connectWire (clout, 2, 0) (op, 2, 0)
+	return (clin, ain, bin, r, zout, ovfl)
