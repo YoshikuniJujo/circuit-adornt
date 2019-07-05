@@ -1,13 +1,12 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module CarryLookahead4 where
+module Samples.CarryLookahead4 where
 
-import Control.Monad
 import Data.Word
 
 import Circuit
 import Element
-import CarryLookaheadCommon
+import Samples.CarryLookaheadCommon
 
 raiseGp :: Word8 -> CircuitBuilder (IWire, IWire, OWire, OWire)
 raiseGp n = do

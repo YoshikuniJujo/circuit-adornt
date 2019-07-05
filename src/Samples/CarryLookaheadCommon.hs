@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module CarryLookaheadCommon where
+module Samples.CarryLookaheadCommon where
 
 import Control.Monad
 
