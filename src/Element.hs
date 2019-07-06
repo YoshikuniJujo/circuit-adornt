@@ -11,22 +11,25 @@ import Data.Word
 import Circuit
 import Tools
 
+norGate :: CircuitBuilder Wire21
+norGate = do
+	(oa, ob, oo) <- orGate
+	(ni, no) <- notGate
+	connectWire64 oo ni
+	return (oa, ob, no)
+
 xorGate :: CircuitBuilder (IWire, IWire, OWire)
 xorGate = do
 	(ain, aout) <- idGate
 	(bin, bout) <- idGate
 	(aa, ab, ao) <- andGate
-	(oa, ob, oo) <- orGate
-	connectWire64 aout aa
-	connectWire64 bout ab
-	connectWire64 aout oa
-	connectWire64 bout ob
-	(ni, no) <- notGate
-	(na, o, r) <- andGate
-	connectWire64 ao ni
-	connectWire64 no na
-	connectWire64 oo o
-	return (ain, bin, r)
+	(na, nb, no) <- norGate
+	(ad, nor, xo) <- norGate
+	connectWire64 aout `mapM_` [aa, na]
+	connectWire64 bout `mapM_` [ab, nb]
+	connectWire64 ao ad
+	connectWire64 no nor
+	return (ain, bin, xo)
 
 multiple :: CircuitBuilder Wire21 -> Word16 -> CircuitBuilder ([IWire], OWire)
 multiple _ n | n < 0 = error "circuit-adornt.Element.multiple _ n | n < 0"
