@@ -22,3 +22,16 @@ clock n = do
 	(oin, oout) <- idGate
 	connectWire0 cout oin
 	return Clock { clSwitch = sw, clSignal = oout }
+
+clockSignal :: Clock -> OWire
+clockSignal = clSignal
+
+clockOn :: Clock -> Circuit -> Circuit
+clockOn cl = setBits (clSwitch cl) (Bits 1)
+
+squareWave :: IWire -> Bits -> Word8 -> Word8 -> Circuit -> Circuit
+squareWave o b pre prd cct = let
+	cct1 = (!! fromIntegral pre) . iterate step $ setBits o (Bits 0) cct
+	cct2 = (!! fromIntegral prd) . iterate step $ setBits o b cct1
+	cct3 = setBits o (Bits 0) cct2 in
+	cct3

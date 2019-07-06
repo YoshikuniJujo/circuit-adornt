@@ -18,7 +18,7 @@ norGate = do
 	connectWire64 oo ni
 	return (oa, ob, no)
 
-xorGate :: CircuitBuilder (IWire, IWire, OWire)
+xorGate :: CircuitBuilder Wire21
 xorGate = do
 	(ain, aout) <- idGate
 	(bin, bout) <- idGate
@@ -30,6 +30,13 @@ xorGate = do
 	connectWire64 ao ad
 	connectWire64 no nor
 	return (ain, bin, xo)
+
+andNotBGate :: CircuitBuilder Wire21
+andNotBGate = do
+	(ni, no) <- notGate
+	(aa, ab, ao) <- andGate
+	connectWire64 no ab
+	return (aa, ni, ao)
 
 multiple :: CircuitBuilder Wire21 -> Word16 -> CircuitBuilder ([IWire], OWire)
 multiple _ n | n < 0 = error "circuit-adornt.Element.multiple _ n | n < 0"
