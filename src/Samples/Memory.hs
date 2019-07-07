@@ -33,3 +33,22 @@ testDlatch = do
 	(c, d, q, nq) <- dlatch
 	connectWire0 (clockSignal cl) c
 	return (cl, d, q, nq)
+
+dflipflop :: CircuitBuilder Wire22
+dflipflop = do
+	(cin, cout) <- idGate
+	(ni, no) <- notGate
+	connectWire0 cout ni
+	(cm, dm, qm, _nqm) <- dlatch
+	(cs, ds, qs, nqs) <- dlatch
+	connectWire0 cout cm
+	connectWire0 no cs
+	connectWire64 qm ds
+	return (cin, dm, qs, nqs)
+
+testDflipflop :: CircuitBuilder(Clock, IWire, OWire, OWire)
+testDflipflop = do
+	cl <- clock 15
+	(c, d, q, nq) <- dflipflop
+	connectWire0 (clockSignal cl) c
+	return (cl, d, q, nq)
