@@ -116,3 +116,16 @@ storeRegisterFile rfws adr_ d cct = let
 		$ setBits (rfwsSwitch rfws) (Bits 0) cct3 in
 	cct4
 	where adr = Bits $ fromIntegral adr_
+
+sramWrite :: Word8 -> CircuitBuilder (IWire, IWire, IWire, [OWire])
+sramWrite n = do
+	(wein, weout) <- idGate
+	(addr, decs) <- decoder' $ fromIntegral n
+	(dtin, dtout) <- idGate
+	(decins, weins, cout) <- unzip3 <$> fromIntegral n `replicateM` andGate
+	(cs, ds, qs, _nqs) <- unzip4 <$> fromIntegral n `replicateM` dlatch
+	zipWithM_ connectWire0 decs decins
+	connectWire0 weout `mapM_` weins
+	zipWithM_ connectWire0 cout cs
+	connectWire64 dtout `mapM_` ds
+	return (wein, addr, dtin, qs)
