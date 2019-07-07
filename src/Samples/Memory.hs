@@ -139,8 +139,48 @@ sramReadUnit n decs os = do
 	flip connectWire64 oin `mapM_` tos
 	return oout
 
-sram :: Word8 -> CircuitBuilder (IWire, IWire, IWire, OWire)
-sram n = do
+sramGen :: Word8 -> CircuitBuilder (IWire, IWire, IWire, OWire)
+sramGen n = do
 	(we, addr, dt, decs, qs) <- sramWrite n
 	out <- sramReadUnit n decs qs
 	return (we, addr, dt, out)
+
+data Sram = Sram {
+	srWrite :: IWire, srAddress :: IWire,
+	srInput :: IWire, srOutput :: OWire,
+
+	srSwitch :: IWire, srOuterWrite :: IWire,
+	srOuterAddress :: IWire, srOuterInput :: IWire }
+	deriving Show
+
+sram :: Word8 -> CircuitBuilder Sram
+sram n = do
+	(we0, addr0, dt0, out) <- sramGen n
+	(swin, swout) <- idGate
+	(sw0, we, we', weout) <- mux2
+	(sw1, addr, addr', addrout) <- mux2
+	(sw2, dt, dt', dtout) <- mux2
+	connectWire0 swout `mapM_` [sw0, sw1, sw2]
+	connectWire0 weout we0
+	connectWire64 addrout addr0
+	connectWire64 dtout dt0
+	return $ Sram {
+		srWrite = we, srAddress = addr,
+		srInput = dt, srOutput = out,
+
+		srSwitch = swin,
+		srOuterWrite = we', srOuterAddress = addr',
+		srOuterInput = dt' }
+
+storeSram :: Sram -> Word8 -> Bits -> Circuit -> Circuit
+storeSram sr addr_ (Bits wdt) cct = let
+	cct1 = (!! 15) . iterate step
+		$ setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt] cct
+	cct2 = (!! 15) . iterate step $ setBits we (Bits 1) cct1
+	cct3 = (!! 15) . iterate step $ setBits we (Bits 0) cct2
+	cct4 = (!! 15) . iterate step $ setBits sw (Bits 0) cct3 in
+	cct4
+	where
+	sw = srSwitch sr; we = srOuterWrite sr
+	ad = srOuterAddress sr; ip = srOuterInput sr
+	waddr = fromIntegral addr_
