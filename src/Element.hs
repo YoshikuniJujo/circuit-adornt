@@ -81,6 +81,13 @@ decoder n = do
 	return (is, oas)
 	where m = log2 n
 
+decoder' :: Word16 -> CircuitBuilder (IWire, [OWire])
+decoder' n = do
+	(iin, iout) <- idGate
+	(is, decs) <- decoder n
+	for_ (zip [0 ..] is) $ \(ix, iw) -> connectWire (iout, 1, ix) (iw, 1, 0)
+	return (iin, decs)
+
 inverse, obverse :: OWire -> IWire -> CircuitBuilder ()
 inverse o i = do
 	(ni, no) <- notGate
@@ -127,3 +134,36 @@ testZero = do
 	(oin, oout) <- idGate
 	connectWire0 no oin
 	return (iin, oout)
+
+srlatch :: CircuitBuilder Wire22
+srlatch = do
+	(r, nqin, qout) <- norGate
+	(s, qin, nqout) <- norGate
+	connectWire64 nqout nqin
+	connectWire64 qout qin
+	return (r, s, qout, nqout)
+
+dlatch :: CircuitBuilder Wire22
+dlatch = do
+	(cin, cout) <- idGate
+	(din, dout) <- idGate
+	(cr, dr, rout) <- andNotBGate
+	(cs, ds, sout) <- andGate
+	(r, s, q, nq) <- srlatch
+	connectWire0_64 cout `mapM_` [cr, cs]
+	connectWire64 dout `mapM_` [dr, ds]
+	connectWire64 rout r
+	connectWire64 sout s
+	return (cin, din, q, nq)
+
+dflipflop :: CircuitBuilder Wire22
+dflipflop = do
+	(cin, cout) <- idGate
+	(ni, no) <- notGate
+	connectWire0 cout ni
+	(cm, dm, qm, _nqm) <- dlatch
+	(cs, ds, qs, nqs) <- dlatch
+	connectWire0 cout cm
+	connectWire0 no cs
+	connectWire64 qm ds
+	return (cin, dm, qs, nqs)
