@@ -1,3 +1,4 @@
+{-# LANGUAGE BinaryLiterals #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
 module Samples.Alu where
@@ -53,3 +54,10 @@ alu = do
 	connectWire (clout, 1, 2) (ci, 1, 0)
 	connectWire (clout, 2, 0) (op, 2, 0)
 	return (clin, ain, bin, r, zout, ovfl)
+
+adder :: CircuitBuilder (IWire, IWire, OWire)
+adder = do
+	(ctr, a, b, r, _z, _ovfl) <- alu
+	ad <- constGate $ Bits 0b0010
+	connectWire64 ad ctr
+	return (a, b, r)
