@@ -67,7 +67,8 @@ instructionMemory n = do
 storeInstructionMemory :: InstructionMemory -> Word16 -> Bits -> Circuit -> Circuit
 storeInstructionMemory im addr_ (Bits wdt) cct = let
 	cct1 = (!! 15) . iterate step
-		$ setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt] cct
+		. setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt]
+		$ setBits (imWrite im) (Bits 0) cct
 	cct2 = (!! 15) . iterate step $ setBits we (Bits 1) cct1
 	cct3 = (!! 15) . iterate step $ setBits we (Bits 0) cct2
 	cct4 = (!! 15) . iterate step $ setBits sw (Bits 0) cct3 in

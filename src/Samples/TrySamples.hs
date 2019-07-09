@@ -13,14 +13,14 @@ import Samples.Memory
 import Samples.RiscvUnits
 
 import Samples.SingleCycle
+import Instructions.SampleInstructions
 
 trySingleCycle :: IO (Clock, ProgramCounter, InstructionMemory, Circuit)
 trySingleCycle = do
 	((cl, pc, im), cct) <- makeCircuitRandomIO singleCycle
 	let	cct0 = resetClock cl cct
-		cct1 = foldr (uncurry $ storeInstructionMemory im) cct0 [
-			(0, Bits 1234567890),
-			(4, Bits 9876543210) ]
+		cct1 = foldr (uncurry $ storeInstructionMemory im) cct0 $
+			zip [0, 4 .. ] (Bits <$> sampleInstControlInstructions)
 		cct2 = resetProgramCounter pc cct1
 		cct3 = clockOn cl cct2
 	return (cl, pc, im, cct3)
