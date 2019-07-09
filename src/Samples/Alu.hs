@@ -34,9 +34,13 @@ alu = do
 	connectWire64 oo o
 	connectWire64 xo s
 
+	cz <- constGate $ Bits 0
+
 	(ofci, ofco, ovfl) <- xorGate
 	connectWire (cs, 1, 63) (ofci, 1, 0)
+	connectWire (cz, 63, 0) (ofci, 63, 1)
 	connectWire0 co ofco
+	connectWire (cz, 63, 0) (ofco, 63, 1)
 
 	(flb, ovfl', lt) <- xorGate
 	connectWire (xo, 1, 63) (flb, 1, 0)

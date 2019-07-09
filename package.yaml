@@ -24,6 +24,7 @@ dependencies:
 - monads-tf
 - containers
 - array
+- random
 
 library:
   source-dirs: src

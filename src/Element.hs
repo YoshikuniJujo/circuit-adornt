@@ -133,6 +133,8 @@ testZero = do
 	connectWire0 oo ni
 	(oin, oout) <- idGate
 	connectWire0 no oin
+	cz <- constGate $ Bits 0
+	connectWire (cz, 63, 0) (oin, 63, 1)
 	return (iin, oout)
 
 srlatch :: CircuitBuilder Wire22

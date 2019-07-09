@@ -13,6 +13,7 @@ module CircuitCore (
 import Prelude
 import qualified Prelude as P
 
+import Control.Arrow
 import Control.Monad.State
 import Data.Maybe
 import Data.Word
@@ -23,17 +24,21 @@ import qualified Data.Map as M
 import CircuitTypes
 import Tools
 
-makeCircuit :: CircuitBuilder a -> (a, Circuit)
-makeCircuit cb = (x ,) $ Circuit {
+makeCircuit :: [Bits] -> CircuitBuilder a -> (a, Circuit)
+makeCircuit ibs cb = (x ,) $ Circuit {
 	cctGate = gs, cctWireConn = wc,
-	cctWireStt = fromList $ makeWireState <$> (iwsfg ++ iwsfo) }
+	cctWireStt = fromList $ (makeWireState dm `mapM` (iwsfg ++ iwsfo)) `evalState` ibs }
 	where
 	(x, CBState { cbsGate = gs, cbsWireConn = wc, cbsDelay = dm }) =
 		cb `runState` initCBState
 	iwsfg = gateWires =<< elems gs
 	iwsfo = catMaybes $ triIWire <$> keys gs
-	makeWireState iw = (iw, replicate d $ Bits 0)
-		where d = fromMaybe 1 $ fromIntegral <$> dm !? iw
+
+makeWireState :: Map IWire Word8 -> IWire -> State [Bits] (IWire, [Bits])
+makeWireState dm iw = (iw ,) <$> pop (fromMaybe 1 $ dm !? iw)
+
+pop :: Integral n => n -> State [a] [a]
+pop n = uncurry (<*) . (return *** put) . P.splitAt (fromIntegral n) =<< get
 
 step :: Circuit -> Circuit
 step cct@Circuit { cctGate = gs, cctWireConn = wc, cctWireStt = wst } = let

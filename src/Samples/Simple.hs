@@ -16,6 +16,8 @@ import Circuit
 import Element
 import Tools
 
+import Samples.TryTools
+
 sampleTri :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
 sampleTri = do
 	(a1, b1, o1) <- triGate
@@ -30,8 +32,11 @@ decoder' n = do
 	(iin, iout) <- idGate
 	(oin, oout) <- idGate
 	(is, os) <- decoder $ fromIntegral n
+	let	n = fromIntegral $ length os
 	for_ (zip [0 ..] is) $ \(i, ip) -> connectWire (iout, 1, i) (ip, 1, 0)
 	for_ (zip [0 ..] os) $ \(i, op) -> connectWire (op, 1, 0) (oin, 1, i)
+	z <- constGate $ Bits 0
+	connectWire (z, 64 - n, 0) (oin, 64 - n, n)
 	return (iin, oout)
 
 data Bit = O | I deriving (Show, Eq)
@@ -89,6 +94,8 @@ pla8 tbl_ = do
 	(oin, oout) <- idGate
 	connectWireOutToIns iout iss
 	connectWireOutsToIn outs oin
+	z <- constGate $ Bits 0
+	connectWire (z, 56, 0) (oin, 56, 8)
 	return (iin, oout)
 	where tbl = (numToBits 8 *** numToBits 8) <$> tbl_
 

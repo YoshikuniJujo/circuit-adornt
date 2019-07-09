@@ -7,7 +7,10 @@ import Data.Word
 import Circuit
 import Element
 
-data Clock = Clock { clSwitch :: IWire, clSignal :: OWire } deriving Show
+data Clock = Clock {
+	clFrequency_2 :: Word8,
+	clSwitch :: IWire, clInput :: IWire, clSignal :: OWire }
+	deriving Show
 
 clock :: Word8 -> CircuitBuilder Clock
 clock n = do
@@ -21,13 +24,18 @@ clock n = do
 	delay cin n
 	(oin, oout) <- idGate
 	connectWire0 cout oin
-	return Clock { clSwitch = sw, clSignal = oout }
+	cz <- constGate $ Bits 0
+	connectWire (cz, 63, 0) (oin, 63, 1)
+	return Clock { clFrequency_2 = n,
+		clInput = cin, clSwitch = sw, clSignal = oout }
 
 clockSignal :: Clock -> OWire
 clockSignal = clSignal
 
 clockOn :: Clock -> Circuit -> Circuit
-clockOn cl = setBits (clSwitch cl) (Bits 1)
+clockOn cl cct = setBits (clSwitch cl) (Bits 1)
+	. (!! fromIntegral (2 * clFrequency_2 cl))
+	$ iterate (step . setBits (clInput cl) (Bits 0)) cct
 
 squareWave :: IWire -> Bits -> Word8 -> Word8 -> Circuit -> Circuit
 squareWave o b pre prd cct = let

@@ -139,23 +139,24 @@ sramReadUnit n decs os = do
 	flip connectWire64 oin `mapM_` tos
 	return oout
 
-sramGen :: Word8 -> CircuitBuilder (IWire, IWire, IWire, OWire)
+sramGen :: Word8 -> CircuitBuilder (IWire, IWire, IWire, OWire, [OWire])
 sramGen n = do
 	(we, addr, dt, decs, qs) <- sramWrite n
 	out <- sramReadUnit n decs qs
-	return (we, addr, dt, out)
+	return (we, addr, dt, out, qs)
 
 data Sram = Sram {
 	srWrite :: IWire, srAddress :: IWire,
 	srInput :: IWire, srOutput :: OWire,
 
 	srSwitch :: IWire, srOuterWrite :: IWire,
-	srOuterAddress :: IWire, srOuterInput :: IWire }
+	srOuterAddress :: IWire, srOuterInput :: IWire,
+	srDebugOutputs :: [OWire] }
 	deriving Show
 
 sram :: Word8 -> CircuitBuilder Sram
 sram n = do
-	(we0, addr0, dt0, out) <- sramGen n
+	(we0, addr0, dt0, out, qs) <- sramGen n
 	(swin, swout) <- idGate
 	(sw0, we, we', weout) <- mux2
 	(sw1, addr, addr', addrout) <- mux2
@@ -170,7 +171,8 @@ sram n = do
 
 		srSwitch = swin,
 		srOuterWrite = we', srOuterAddress = addr',
-		srOuterInput = dt' }
+		srOuterInput = dt',
+		srDebugOutputs = qs }
 
 storeSram :: Sram -> Word8 -> Bits -> Circuit -> Circuit
 storeSram sr addr_ (Bits wdt) cct = let
