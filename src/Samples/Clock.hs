@@ -32,6 +32,11 @@ clock n = do
 clockSignal :: Clock -> OWire
 clockSignal = clSignal
 
+resetClock :: Clock -> Circuit -> Circuit
+resetClock cl cct = (!! fromIntegral (2 * clFrequency_2 cl))
+	. iterate (step . setBits (clInput cl) (Bits 0))
+	$ setBits (clSwitch cl) (Bits 0) cct
+
 clockOn :: Clock -> Circuit -> Circuit
 clockOn cl cct = setBits (clSwitch cl) (Bits 1)
 	. (!! fromIntegral (2 * clFrequency_2 cl))
