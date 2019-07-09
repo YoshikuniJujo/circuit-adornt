@@ -7,7 +7,7 @@ import Samples.RiscvUnits
 import Samples.Clock
 import Samples.Alu
 
-singleCycle :: CircuitBuilder (Clock, ProgramCounter)
+singleCycle :: CircuitBuilder (Clock, ProgramCounter, InstructionMemory)
 singleCycle = do
 	cl <- clock 30
 	pc <- programCounter
@@ -17,4 +17,8 @@ singleCycle = do
 	connectWire64 (pcOutput pc) a
 	connectWire64 four b
 	connectWire64 o (pcInput pc)
-	return (cl, pc)
+
+	im <- instructionMemory 64
+	connectWire64 (pcOutput pc) (imAddress im)
+
+	return (cl, pc, im)

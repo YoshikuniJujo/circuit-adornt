@@ -2,9 +2,11 @@
 
 module Samples.RiscvUnits where
 
+import Data.Word
+
 import Circuit
 import Element
--- import Samples.Memory
+import Samples.Memory
 
 data ProgramCounter = ProgramCounter {
 	pcClock :: IWire, pcInput :: IWire, pcOutput :: OWire,
@@ -38,3 +40,39 @@ resetProgramCounter pc cct = let
 	sw = pcSwitch pc
 	cl = pcOuterClock pc
 	dt = pcOuterInput pc
+
+data InstructionMemory = InstructionMemory {
+	imWrite :: IWire, imAddress :: IWire,
+	imInput :: IWire, imOutput :: OWire,
+
+	imSwitch :: IWire, imOuterWrite :: IWire,
+	imOuterAddress :: IWire, imOuterInput :: IWire,
+	imDebugOutputs :: [OWire] }
+
+instructionMemory :: Word8 -> CircuitBuilder InstructionMemory
+instructionMemory n = do
+	sr <- sram n
+	(addrin, addrout) <- idGate
+	(oaddrin, oaddrout) <- idGate
+	connectWire (addrout, 62, 2) (srAddress sr, 62, 0)
+	connectWire (oaddrout, 62, 2) (srOuterAddress sr, 62, 0)
+	return InstructionMemory {
+		imWrite = srWrite sr, imAddress = addrin,
+		imInput = srInput sr, imOutput = srOutput sr,
+
+		imSwitch = srSwitch sr, imOuterWrite = srOuterWrite sr,
+		imOuterAddress = oaddrin, imOuterInput = srOuterInput sr,
+		imDebugOutputs = srDebugOutputs sr }
+
+storeInstructionMemory :: InstructionMemory -> Word16 -> Bits -> Circuit -> Circuit
+storeInstructionMemory im addr_ (Bits wdt) cct = let
+	cct1 = (!! 15) . iterate step
+		$ setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt] cct
+	cct2 = (!! 15) . iterate step $ setBits we (Bits 1) cct1
+	cct3 = (!! 15) . iterate step $ setBits we (Bits 0) cct2
+	cct4 = (!! 15) . iterate step $ setBits sw (Bits 0) cct3 in
+	cct4
+	where
+	sw = imSwitch im; we = imOuterWrite im
+	ad = imOuterAddress im; ip = imOuterInput im
+	waddr = fromIntegral addr_
