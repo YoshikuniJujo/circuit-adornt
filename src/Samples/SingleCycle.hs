@@ -3,6 +3,7 @@
 module Samples.SingleCycle where
 
 import Circuit
+import Element
 import Samples.RiscvUnits
 import Samples.Clock
 import Samples.Alu
@@ -13,9 +14,9 @@ import Samples.ImmGen
 
 singleCycle :: CircuitBuilder (
 	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
-	OWire, OWire, OWire )
+	OWire, OWire, OWire, (OWire, OWire, OWire) )
 singleCycle = do
-	cl <- clock 30
+	cl <- clock 35
 	pc <- programCounter
 	(a, b, o) <- adder
 	four <- constGate $ Bits 4
@@ -43,4 +44,13 @@ singleCycle = do
 	(immin, immout) <- immGen
 	connectWire64 (imOutput im) immin
 
-	return (cl, pc, im, rf, ctrlout, aluctrl, immout)
+	(actrl, arga, argb, arslt, azero, aovfl) <- alu
+	(ctrlas, rfout2, imm, argbout) <- mux2
+	connectWire64 aluctrl actrl
+	connectWire64 (rfOutput1 $ rfwsRegisterFile rf) arga
+	connectWire (ctrlout, 1, 5) (ctrlas, 1, 0)
+	connectWire64 (rfOutput2 $ rfwsRegisterFile rf) rfout2
+	connectWire64 immout imm
+	connectWire64 argbout argb
+
+	return (cl, pc, im, rf, ctrlout, aluctrl, immout, (arslt, azero, aovfl))
