@@ -11,6 +11,7 @@ import Samples.Alu
 import Samples.Clock
 import Samples.Memory
 import Samples.RiscvUnits
+import Samples.ControlPla
 
 import Samples.SingleCycle
 import Instructions.SampleInstructions
