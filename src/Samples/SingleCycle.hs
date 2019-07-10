@@ -8,10 +8,11 @@ import Samples.Clock
 import Samples.Alu
 import Samples.Memory
 import Samples.ControlPla
+import Samples.AluController
 
 singleCycle :: CircuitBuilder (
 	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
-	OWire )
+	OWire, OWire )
 singleCycle = do
 	cl <- clock 30
 	pc <- programCounter
@@ -34,4 +35,8 @@ singleCycle = do
 	(ctrlin, ctrlout) <- controlPla
 	connectWire64 (imOutput im) ctrlin
 
-	return (cl, pc, im, rf, ctrlout)
+	(ctrlalu, instalu, aluctrl) <- aluController
+	connectWire64 ctrlout ctrlalu
+	connectWire64 (imOutput im) instalu
+
+	return (cl, pc, im, rf, ctrlout, aluctrl)
