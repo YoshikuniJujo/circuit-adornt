@@ -15,12 +15,18 @@ import Tools
 
 import qualified Data.Bits as B
 
-norGate :: CircuitBuilder Wire21
+norGate, nandGate :: CircuitBuilder Wire21
 norGate = do
 	(oa, ob, oo) <- orGate
 	(ni, no) <- notGate
 	connectWire64 oo ni
 	return (oa, ob, no)
+
+nandGate = do
+	(aa, ab, ao) <- andGate
+	(ni, no) <- notGate
+	connectWire64 ao ni
+	return (aa, ab, no)
 
 xorGate :: CircuitBuilder Wire21
 xorGate = do
