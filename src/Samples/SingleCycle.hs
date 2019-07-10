@@ -7,9 +7,11 @@ import Samples.RiscvUnits
 import Samples.Clock
 import Samples.Alu
 import Samples.Memory
+import Samples.ControlPla
 
-singleCycle :: CircuitBuilder
-	(Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch)
+singleCycle :: CircuitBuilder (
+	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
+	OWire )
 singleCycle = do
 	cl <- clock 30
 	pc <- programCounter
@@ -29,4 +31,7 @@ singleCycle = do
 	connectWire (imOutput im, 5, 20)
 		(rfReadAddress2 $ rfwsRegisterFile rf, 5, 0)
 
-	return (cl, pc, im, rf)
+	(ctrlin, ctrlout) <- controlPla
+	connectWire64 (imOutput im) ctrlin
+
+	return (cl, pc, im, rf, ctrlout)
