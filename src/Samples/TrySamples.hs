@@ -19,16 +19,16 @@ import Instructions.SampleInstructions
 
 trySingleCycle :: IO (
 	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
-	OWire, OWire, Circuit )
+	OWire, OWire, OWire, Circuit )
 trySingleCycle = do
-	((cl, pc, im, rf, ctrl, aluctrl), cct) <- makeCircuitRandomIO singleCycle
+	((cl, pc, im, rf, ctrl, aluctrl, imm), cct) <- makeCircuitRandomIO singleCycle
 	let	cct0 = resetClock cl cct
 		cct1 = foldr (uncurry $ storeInstructionMemory im) cct0 $
 			zip [0, 4 .. ] (Bits <$> sampleInstControlInstructions)
 		cct2 = storeRegisterFile rf 15 (Bits 1234567890) cct1
 		cct3 = resetProgramCounter pc cct2
 		cct4 = clockOn cl cct3
-	return (cl, pc, im, rf, ctrl, aluctrl, cct4)
+	return (cl, pc, im, rf, ctrl, aluctrl, imm, cct4)
 
 runProgramCounter :: ProgramCounter -> Circuit -> Int -> [Word64]
 runProgramCounter pc cct n =

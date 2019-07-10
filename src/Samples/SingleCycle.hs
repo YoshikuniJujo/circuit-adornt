@@ -9,10 +9,11 @@ import Samples.Alu
 import Samples.Memory
 import Samples.ControlPla
 import Samples.AluController
+import Samples.ImmGen
 
 singleCycle :: CircuitBuilder (
 	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
-	OWire, OWire )
+	OWire, OWire, OWire )
 singleCycle = do
 	cl <- clock 30
 	pc <- programCounter
@@ -39,4 +40,7 @@ singleCycle = do
 	connectWire64 ctrlout ctrlalu
 	connectWire64 (imOutput im) instalu
 
-	return (cl, pc, im, rf, ctrlout, aluctrl)
+	(immin, immout) <- immGen
+	connectWire64 (imOutput im) immin
+
+	return (cl, pc, im, rf, ctrlout, aluctrl, immout)
