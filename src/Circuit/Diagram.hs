@@ -7,6 +7,7 @@ import Prelude as P
 
 import Control.Monad.State
 import Data.Map.Strict
+import Data.Bool
 import Data.Int
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
@@ -17,25 +18,29 @@ import CircuitTypes
 
 import Circuit.Diagram.Gates
 
-type DiagramBuilder = State (Map BasicGate [(Int8, Int8)])
+type DiagramBuilder = State (Map BasicGate [(Bool, (Int8, Int8))])
 
 fromCBStateBuilder :: Word -> CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
 fromCBStateBuilder n cbs ow pos cd = do
 	let	bgt = cbsGate cbs ! ow
 	mold <- gets (!? bgt)
 	case mold of
-		Just ps -> return $ fromTo pos (head ps) cd
+		Just ps -> do
+			modify $ insert bgt ((False, pos) : ps)
+			return $ fromTo pos (head ps) cd
 		Nothing -> do
-			modify $ insert bgt [pos]
+			modify $ insert bgt [(True, pos)]
 			newFromCBStateBuilder n cbs bgt pos cd
 
-fromTo :: (Int8, Int8) -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
-fromTo (x, y) (x', y') cd
+fromTo :: (Int8, Int8) -> (Bool, (Int8, Int8)) -> CircuitDiagram -> CircuitDiagram
+fromTo (x, y) (org, (x', y')) cd
 	| x == x' && y' > y = let
 		cd' = cd { cdDiagram = insert (x, y) TopRightD $ cdDiagram cd }
 		cd'' = cd { cdDiagram = P.foldr (\yy -> insert (x, yy) VLineD) (cdDiagram cd') [y + 1 .. y' - 1] }
-		cd''' = cd'' { cdDiagram = insert (x, y') TLineD (cdDiagram cd'') } in
+		cd''' = cd'' { cdDiagram = insert (x, y') tl (cdDiagram cd'') } in
 		cd'''
+	where
+	tl = bool LTLineD TLineD org
 
 newFromCBStateBuilder :: Word -> CBState -> BasicGate -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
 newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
@@ -69,7 +74,7 @@ newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
 
 data CircuitDiagramElem
 	= HLineD | VLineD | TopLeftD | TopRightD | BottomLeftD | BottomRightD
-	| TLineD
+	| TLineD | LTLineD
 	| NotGateD | AndGateD
 	deriving Show
 
@@ -103,9 +108,15 @@ sampleCircuitBuilder2 :: CircuitBuilder (IWire, OWire)
 sampleCircuitBuilder2 = do
 	(ni, no) <- notGate
 	(a1, a2, ao) <- andGate
+	(a1', a2', ao') <- andGate
+	(a1'', a2'', ao'') <- andGate
 	connectWire64 no a1
 	connectWire64 no a2
-	return (ni, ao)
+	connectWire64 no a1'
+	connectWire64 no a2'
+	connectWire64 ao a1''
+	connectWire64 ao' a2''
+	return (ni, ao'')
 
 initCircuitDiagram :: CircuitDiagram
 initCircuitDiagram = CircuitDiagram {
@@ -169,6 +180,7 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 	Just BottomLeftD -> moveTo ((- fromIntegral x) ^& fromIntegral y) bottomLeftD
 	Just BottomRightD -> moveTo ((- fromIntegral x) ^& fromIntegral y) bottomRightD
 	Just TLineD -> moveTo ((- fromIntegral x) ^& fromIntegral y) tLineD
+	Just LTLineD -> moveTo ((- fromIntegral x) ^& fromIntegral y) ltLineD
 	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
 	Just AndGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) andGateD
 	_ -> mempty
@@ -176,7 +188,7 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 sampleCircuitDiagram, sampleCircuitDiagram2 :: CircuitDiagram
 sampleCircuitDiagram = toCircuitDiagram 8 sampleCircuitBuilder ow
 	where ((_, _i0, _i1, _i2, _i3, ow), _) = sampleCircuitBuilder `runState` initCBState
-sampleCircuitDiagram2 = toCircuitDiagram 2 sampleCircuitBuilder2 ow
+sampleCircuitDiagram2 = toCircuitDiagram 4 sampleCircuitBuilder2 ow
 	where ((_, ow), _) = sampleCircuitBuilder2 `runState` initCBState
 
 tryDiagrams, tryDiagrams2 :: IO ()

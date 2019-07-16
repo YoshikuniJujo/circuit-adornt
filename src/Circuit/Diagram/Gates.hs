@@ -4,7 +4,7 @@
 module Circuit.Diagram.Gates (
 	andGateD, notGateD,
 	hLineD, vLineD, topLeftD, topRightD, bottomLeftD, bottomRightD,
-	tLineD
+	tLineD, ltLineD
 	) where
 
 import Diagrams.Prelude
@@ -48,5 +48,6 @@ topRightD = (strokeT (fromOffsets [zero &_x .~ (- 0.5), zero &_y .~ 0.5]) # lwL 
 bottomLeftD = moveTo ((- 1) ^& 0) $ rotateBy (1 / 2) topRightD
 bottomRightD = reflectY topRightD
 
-tLineD :: Diagram B
+tLineD, ltLineD :: Diagram B
 tLineD = lineRight (- 1) <> moveTo ((- 0.5) ^& 0) (circle $ 1 / 8) # fc black <> moveTo ((- 0.5) ^& 0) (lineUp $ - 0.5)
+ltLineD = moveTo ((- 0.5) ^& 0.5) $ rotateBy (1 / 4) tLineD
