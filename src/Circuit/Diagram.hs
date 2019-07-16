@@ -13,6 +13,8 @@ import Circuit
 import CircuitCore
 import CircuitTypes
 
+import Circuit.Diagram.Gates
+
 data CircuitDiagramElem = NotGateD
 	deriving Show
 
@@ -28,9 +30,11 @@ sampleCircuitBuilder = do
 	(i0, o0) <- notGate
 	(i1, o1) <- notGate
 	(i2, o2) <- notGate
+	(i3, o3) <- notGate
 	connectWire64 o0 i1
 	connectWire64 o1 i2
-	return (i0, o2)
+	connectWire64 o2 i3
+	return (i0, o3)
 
 initCircuitDiagram :: CircuitDiagram
 initCircuitDiagram = CircuitDiagram {
@@ -67,41 +71,10 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
 	_ -> mempty
 
-notGateD :: Diagram B
-notGateD = (moveTo ((- 1) ^& 0) (lineRight 0.1) <> notGateDPure <> moveTo (1 ^& 0) (lineRight (- 0.15)))
-	`withEnvelope'` (rect 2 3 :: Diagram B)
-
-notGateDPure :: Diagram B
-notGateDPure = (moveTo ((- 0.45) ^& 0) (triangle1_4 1.5)  <>  moveTo (0.66 ^& 0) (circleB (1.5 / 8))) # lwL 0.08
-
-line :: Diagram B
-line = strokeT (fromOffsets [unitX]) # lwL 0.08
-
-lineRight :: Double -> Diagram B
-lineRight l = strokeT (fromOffsets [zero &_x .~ l]) # lwL 0.08
-
-withEnvelope' :: (InSpace v n a, Monoid' m, Enveloped a) =>
-	QDiagram b v n m -> a -> QDiagram b v n m
-withEnvelope' = flip withEnvelope
-
-triangle1_4 :: Double -> Diagram B
-triangle1_4 = rotateBy (- 1 / 4) . triangle
-
-circleB :: Double -> Diagram B
-circleB = circle
-
 sampleCircuitDiagram :: CircuitDiagram
 sampleCircuitDiagram = toCircuitDiagram sampleCircuitBuilder ow
 	where
 	((_iw, ow), _) = sampleCircuitBuilder `runState` initCBState
-
-{-
-CircuitDiagram {
-	cdTop = 1,
-	cdBottom = - 1,
-	cdLeft = 4,
-	cdDiagram = insert (4, 0) NotGateD . insert (2, 0) NotGateD $ insert (0, 0) NotGateD empty }
-	-}
 
 tryDiagrams :: IO ()
 tryDiagrams = renderSVG "sample.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram
