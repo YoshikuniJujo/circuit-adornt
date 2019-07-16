@@ -48,6 +48,14 @@ sampleCircuitBuilder = do
 	connectWire64 o1 i2
 	return (i_1, a_21, a_22, a_12, a2, o2)
 
+sampleCircuitBuilder2 :: CircuitBuilder (IWire, OWire)
+sampleCircuitBuilder2 = do
+	(ni, no) <- notGate
+	(a1, a2, ao) <- andGate
+	connectWire64 no a1
+	connectWire64 no a2
+	return (ni, ao)
+
 initCircuitDiagram :: CircuitDiagram
 initCircuitDiagram = CircuitDiagram {
 	cdTop = 8,
@@ -55,8 +63,8 @@ initCircuitDiagram = CircuitDiagram {
 	cdLeft = 23,
 	cdDiagram = empty }
 
-toCircuitDiagram :: CircuitBuilder a -> OWire -> CircuitDiagram
-toCircuitDiagram cb ow = fromCBState 8 cbs ow (0, 0) initCircuitDiagram
+toCircuitDiagram :: Word -> CircuitBuilder a -> OWire -> CircuitDiagram
+toCircuitDiagram n cb ow = fromCBState n cbs ow (0, 0) initCircuitDiagram
 	where cbs = cb `execState` initCBState
 
 fromCBState :: Word -> CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
@@ -113,10 +121,12 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 	Just AndGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) andGateD
 	_ -> mempty
 
-sampleCircuitDiagram :: CircuitDiagram
-sampleCircuitDiagram = toCircuitDiagram sampleCircuitBuilder ow
-	where
-	((_, _i0, _i1, _i2, _i3, ow), _) = sampleCircuitBuilder `runState` initCBState
+sampleCircuitDiagram, sampleCircuitDiagram2 :: CircuitDiagram
+sampleCircuitDiagram = toCircuitDiagram 8 sampleCircuitBuilder ow
+	where ((_, _i0, _i1, _i2, _i3, ow), _) = sampleCircuitBuilder `runState` initCBState
+sampleCircuitDiagram2 = toCircuitDiagram 2 sampleCircuitBuilder2 ow
+	where ((_, ow), _) = sampleCircuitBuilder2 `runState` initCBState
 
-tryDiagrams :: IO ()
+tryDiagrams, tryDiagrams2 :: IO ()
 tryDiagrams = renderSVG "sample.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram
+tryDiagrams2 = renderSVG "sample2.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram2
