@@ -39,15 +39,22 @@ fromTo (x, y) (org, (x', y')) cd
 		cd'' = cd { cdDiagram = P.foldr (\yy -> insert (x, yy) VLineD) (cdDiagram cd') [y + 1 .. y' - 1] }
 		cd''' = cd'' { cdDiagram = insert (x, y') tl (cdDiagram cd'') } in
 		cd'''
+	| x > x' && y' > y = let
+		cd' = cd { cdDiagram = insert (x, y) TopRightD (cdDiagram cd) }
+		cd'' = cd' { cdDiagram = insert (x, y + 1) BottomRightD (cdDiagram cd') }
+		cd''' = cd'' { cdDiagram = P.foldr (\xx -> insert (xx, y + 1) HLineD) (cdDiagram cd'') [x'+ 1 .. x - 1] }
+		cd4 = cd''' { cdDiagram = insert (x', y + 1) TopLeftD (cdDiagram cd''') }
+		cd5 = cd4 { cdDiagram = P.foldr (\yy -> insert (x', yy) VLineD) (cdDiagram cd4) [y + 2 .. y' - 1] } in
+		cd5 { cdDiagram = insert (x', y') tl (cdDiagram cd5) }
 	where
 	tl = bool LTLineD TLineD org
 
 newFromCBStateBuilder :: Word -> CBState -> BasicGate -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
 newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
 	case bgt of
-		NotGate iw -> return $ case getOWire cbs iw of
-			Just ow' -> fromCBState n cbs ow' (x + 3, y) cd''
-			Nothing -> cd''
+		NotGate iw -> case getOWire cbs iw of
+			Just ow' -> fromCBStateBuilder n cbs ow' (x + 3, y) cd''
+			Nothing -> return cd''
 			where
 			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
 			cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
@@ -110,12 +117,14 @@ sampleCircuitBuilder2 = do
 	(a1, a2, ao) <- andGate
 	(a1', a2', ao') <- andGate
 	(a1'', a2'', ao'') <- andGate
+	(ni', no') <- notGate
 	connectWire64 no a1
 	connectWire64 no a2
 	connectWire64 no a1'
 	connectWire64 no a2'
 	connectWire64 ao a1''
-	connectWire64 ao' a2''
+	connectWire64 ao' ni'
+	connectWire64 no' a2''
 	return (ni, ao'')
 
 initCircuitDiagram :: CircuitDiagram

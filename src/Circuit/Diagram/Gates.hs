@@ -44,7 +44,7 @@ vLineD = moveTo ((- 0.5) ^& (- 0.5)) $ strokeT (fromOffsets [unitY]) # lwL 0.08
 
 topLeftD, topRightD, bottomLeftD, bottomRightD :: Diagram B
 topLeftD = reflectY bottomLeftD
-topRightD = (strokeT (fromOffsets [zero &_x .~ (- 0.5), zero &_y .~ 0.5]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
+topRightD = (strokeT (fromOffsets [zero &_x .~ (- 0.5), zero &_y .~ 0.5]) # lwL 0.08) `withEnvelope'` (rect 2 1 :: Diagram B)
 bottomLeftD = moveTo ((- 1) ^& 0) $ rotateBy (1 / 2) topRightD
 bottomRightD = reflectY topRightD
 
