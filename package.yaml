@@ -25,6 +25,8 @@ dependencies:
 - containers
 - array
 - random
+- diagrams-lib
+- diagrams-svg
 
 library:
   source-dirs: src
