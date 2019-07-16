@@ -15,7 +15,7 @@ import qualified Data.List as L
 
 import Tools
 
-newtype Bits = Bits Word64 deriving (Show, Eq)
+newtype Bits = Bits Word64 deriving (Show, Eq, Ord)
 
 notBits :: Bits -> Bits
 notBits (Bits w) = Bits $ B.complement w
@@ -107,7 +107,7 @@ data BasicGate
 	= ConstGate Bits
 	| IdGate IWire | NotGate IWire
 	| AndGate IWire IWire | OrGate IWire IWire
-	deriving Show
+	deriving (Show, Eq, Ord)
 
 gateWires :: BasicGate -> [IWire]
 gateWires (ConstGate _) = []

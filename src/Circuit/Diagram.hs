@@ -17,8 +17,59 @@ import CircuitTypes
 
 import Circuit.Diagram.Gates
 
+type DiagramBuilder = State (Map BasicGate [(Int8, Int8)])
+
+fromCBStateBuilder :: Word -> CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
+fromCBStateBuilder n cbs ow pos cd = do
+	let	bgt = cbsGate cbs ! ow
+	mold <- gets (!? bgt)
+	case mold of
+		Just ps -> return $ fromTo pos (head ps) cd
+		Nothing -> do
+			modify $ insert bgt [pos]
+			newFromCBStateBuilder n cbs bgt pos cd
+
+fromTo :: (Int8, Int8) -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
+fromTo (x, y) (x', y') cd
+	| x == x' && y' > y = let
+		cd' = cd { cdDiagram = insert (x, y) TopRightD $ cdDiagram cd }
+		cd'' = cd { cdDiagram = P.foldr (\yy -> insert (x, yy) VLineD) (cdDiagram cd') [y + 1 .. y' - 1] }
+		cd''' = cd'' { cdDiagram = insert (x, y') TLineD (cdDiagram cd'') } in
+		cd'''
+
+newFromCBStateBuilder :: Word -> CBState -> BasicGate -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
+newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
+	case bgt of
+		NotGate iw -> return $ case getOWire cbs iw of
+			Just ow' -> fromCBState n cbs ow' (x + 3, y) cd''
+			Nothing -> cd''
+			where
+			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
+			cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
+		AndGate i1 i2 -> do
+			cdcd1 <- case getOWire cbs i1 of
+				Just ow1 -> let
+					cd3 = cd'' { cdDiagram = insert (x + 4, y + 1) TopRightD $ cdDiagram cd'' }
+					cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y + dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
+					cd5 = cd4 { cdDiagram = insert (x + 4, y + fromIntegral n) BottomLeftD $ cdDiagram cd4 } in
+					fromCBStateBuilder (n `div` 2) cbs ow1 (x + 5, y + fromIntegral n) cd5
+				Nothing -> return cd''
+			cdcd2 <- case getOWire cbs i2 of
+				Just ow1 -> let
+					cd3 = cdcd1 { cdDiagram = insert (x + 4, y - 1) BottomRightD $ cdDiagram cdcd1 }
+					cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y - dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
+					cd5 = cd4 { cdDiagram = insert (x + 4, y - fromIntegral n) TopLeftD $ cdDiagram cd4 } in
+					fromCBStateBuilder (n `div` 2) cbs ow1 (x + 5, y - fromIntegral n) cd5
+				Nothing -> return cdcd1
+			return cdcd2
+			where
+			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
+			cd'' = cd' { cdDiagram = insert (x + 1, y) AndGateD $ cdDiagram cd' }
+		_ -> error "yet"
+
 data CircuitDiagramElem
 	= HLineD | VLineD | TopLeftD | TopRightD | BottomLeftD | BottomRightD
+	| TLineD
 	| NotGateD | AndGateD
 	deriving Show
 
@@ -64,7 +115,7 @@ initCircuitDiagram = CircuitDiagram {
 	cdDiagram = empty }
 
 toCircuitDiagram :: Word -> CircuitBuilder a -> OWire -> CircuitDiagram
-toCircuitDiagram n cb ow = fromCBState n cbs ow (0, 0) initCircuitDiagram
+toCircuitDiagram n cb ow = fromCBStateBuilder n cbs ow (0, 0) initCircuitDiagram `evalState` empty
 	where cbs = cb `execState` initCBState
 
 fromCBState :: Word -> CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
@@ -117,6 +168,7 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 	Just TopRightD -> moveTo ((- fromIntegral x) ^& fromIntegral y) topRightD
 	Just BottomLeftD -> moveTo ((- fromIntegral x) ^& fromIntegral y) bottomLeftD
 	Just BottomRightD -> moveTo ((- fromIntegral x) ^& fromIntegral y) bottomRightD
+	Just TLineD -> moveTo ((- fromIntegral x) ^& fromIntegral y) tLineD
 	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
 	Just AndGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) andGateD
 	_ -> mempty
