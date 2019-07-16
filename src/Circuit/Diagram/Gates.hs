@@ -3,7 +3,7 @@
 
 module Circuit.Diagram.Gates (
 	andGateD, notGateD,
-	hLineD, topLeftD, topRightD, bottomLeftD, bottomRightD
+	hLineD, vLineD, topLeftD, topRightD, bottomLeftD, bottomRightD
 	) where
 
 import Diagrams.Prelude
@@ -32,9 +32,11 @@ triangle1_4 = rotateBy (- 1 / 4) . triangle
 circleB :: Double -> Diagram B
 circleB = circle
 
-hLineD :: Diagram B
+hLineD, vLineD :: Diagram B
 hLineD = moveTo ((- 1) ^& 0)
 	$ (strokeT (fromOffsets [unitX]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
+
+vLineD = moveTo ((- 0.5) ^& (- 0.5)) $ strokeT (fromOffsets [unitY]) # lwL 0.08
 
 topLeftD, topRightD, bottomLeftD, bottomRightD :: Diagram B
 topLeftD = reflectY bottomLeftD
