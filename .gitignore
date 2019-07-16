@@ -2,3 +2,4 @@
 circuit-adornt.cabal
 *~
 *.svg
+.*.swp
