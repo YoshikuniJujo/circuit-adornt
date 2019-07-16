@@ -29,8 +29,9 @@ data CircuitDiagram = CircuitDiagram {
 	cdDiagram :: Map (Int8, Int8) CircuitDiagramElem }
 	deriving Show
 
-sampleCircuitBuilder :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
+sampleCircuitBuilder :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, OWire)
 sampleCircuitBuilder = do
+	(a_21, a_22, a_2o) <- andGate
 	(a_11, a_12, a_1o) <- andGate
 	(i_1, o_1) <- notGate
 	(i0, o0) <- notGate
@@ -40,17 +41,18 @@ sampleCircuitBuilder = do
 	(i2, o2) <- notGate
 	connectWire64 o_1 i0
 	connectWire64 o0 a1'
+	connectWire64 a_2o a_11
 	connectWire64 a_1o a1
 	connectWire64 ao a2'
 	connectWire64 ao' i1
 	connectWire64 o1 i2
-	return (i_1, a_11, a_12, a2, o2)
+	return (i_1, a_21, a_22, a_12, a2, o2)
 
 initCircuitDiagram :: CircuitDiagram
 initCircuitDiagram = CircuitDiagram {
 	cdTop = 8,
 	cdBottom = -8,
-	cdLeft = 18,
+	cdLeft = 23,
 	cdDiagram = empty }
 
 toCircuitDiagram :: CircuitBuilder a -> OWire -> CircuitDiagram
@@ -114,7 +116,7 @@ toDiagram1 (x, y) ds = case ds !? (x, y) of
 sampleCircuitDiagram :: CircuitDiagram
 sampleCircuitDiagram = toCircuitDiagram sampleCircuitBuilder ow
 	where
-	((_i0, _i1, _i2, _i3, ow), _) = sampleCircuitBuilder `runState` initCBState
+	((_, _i0, _i1, _i2, _i3, ow), _) = sampleCircuitBuilder `runState` initCBState
 
 tryDiagrams :: IO ()
 tryDiagrams = renderSVG "sample.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram
