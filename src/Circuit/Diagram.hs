@@ -15,7 +15,8 @@ import CircuitTypes
 
 import Circuit.Diagram.Gates
 
-data CircuitDiagramElem = NotGateD
+data CircuitDiagramElem
+	= HLineD | NotGateD
 	deriving Show
 
 data CircuitDiagram = CircuitDiagram {
@@ -50,9 +51,11 @@ toCircuitDiagram cb ow = fromCBState cbs ow (0, 0) initCircuitDiagram
 fromCBState :: CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
 fromCBState cbs ow pos@(x, y) cd = case cbsGate cbs !? ow of
 	Just (NotGate iw) -> case getOWire cbs iw of
-		Just ow' -> fromCBState cbs ow' (x + 2, y) cd'
-		Nothing -> cd'
-		where cd' = cd { cdDiagram = insert pos NotGateD $ cdDiagram cd }
+		Just ow' -> fromCBState cbs ow' (x + 3, y) cd''
+		Nothing -> cd''
+		where
+		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
+		cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
 	_ -> error "yet"
 
 getOWire :: CBState -> IWire -> Maybe OWire
@@ -69,6 +72,7 @@ toDiagramGen t b l ds = mconcat . (<$> [b .. t]) $ \y ->
 toDiagram1 :: (Int8, Int8) -> Map (Int8, Int8) CircuitDiagramElem -> Diagram B
 toDiagram1 (x, y) ds = case ds !? (x, y) of
 	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
+	Just HLineD -> moveTo ((- fromIntegral x) ^& fromIntegral y) hLineD
 	_ -> mempty
 
 sampleCircuitDiagram :: CircuitDiagram

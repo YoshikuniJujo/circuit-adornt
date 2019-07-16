@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Circuit.Diagram.Gates (notGateD) where
+module Circuit.Diagram.Gates (notGateD, hLineD) where
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
@@ -25,3 +25,6 @@ triangle1_4 = rotateBy (- 1 / 4) . triangle
 
 circleB :: Double -> Diagram B
 circleB = circle
+
+hLineD :: Diagram B
+hLineD = (strokeT (fromOffsets [unitX]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
