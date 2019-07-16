@@ -1,7 +1,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Circuit.Diagram.Gates (andGateD, notGateD, hLineD) where
+module Circuit.Diagram.Gates (
+	andGateD, notGateD,
+	hLineD, topLeftD, topRightD, bottomLeftD, bottomRightD
+	) where
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
@@ -32,3 +35,9 @@ circleB = circle
 hLineD :: Diagram B
 hLineD = moveTo ((- 1) ^& 0)
 	$ (strokeT (fromOffsets [unitX]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
+
+topLeftD, topRightD, bottomLeftD, bottomRightD :: Diagram B
+topLeftD = reflectY bottomLeftD
+topRightD = strokeT (fromOffsets [zero &_x .~ (- 0.5), zero &_y .~ 0.5]) # lwL 0.08 
+bottomLeftD = moveTo ((- 1) ^& 0) $ rotateBy (1 / 2) topRightD
+bottomRightD = reflectY topRightD
