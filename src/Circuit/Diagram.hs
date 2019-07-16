@@ -16,7 +16,7 @@ import CircuitTypes
 import Circuit.Diagram.Gates
 
 data CircuitDiagramElem
-	= HLineD | NotGateD
+	= HLineD | NotGateD | AndGateD
 	deriving Show
 
 data CircuitDiagram = CircuitDiagram {
@@ -26,16 +26,16 @@ data CircuitDiagram = CircuitDiagram {
 	cdDiagram :: Map (Int8, Int8) CircuitDiagramElem }
 	deriving Show
 
-sampleCircuitBuilder :: CircuitBuilder (IWire, OWire)
+sampleCircuitBuilder :: CircuitBuilder (IWire, IWire, OWire)
 sampleCircuitBuilder = do
+	(a1, a2, ao) <- andGate
 	(i0, o0) <- notGate
 	(i1, o1) <- notGate
 	(i2, o2) <- notGate
-	(i3, o3) <- notGate
+	connectWire64 ao i0
 	connectWire64 o0 i1
 	connectWire64 o1 i2
-	connectWire64 o2 i3
-	return (i0, o3)
+	return (a1, a2, o2)
 
 initCircuitDiagram :: CircuitDiagram
 initCircuitDiagram = CircuitDiagram {
@@ -56,6 +56,10 @@ fromCBState cbs ow pos@(x, y) cd = case cbsGate cbs !? ow of
 		where
 		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
 		cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
+	Just (AndGate i1 i2) -> cd''
+		where
+		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
+		cd'' = cd' { cdDiagram = insert (x + 1, y) AndGateD $ cdDiagram cd' }
 	_ -> error "yet"
 
 getOWire :: CBState -> IWire -> Maybe OWire
@@ -71,14 +75,15 @@ toDiagramGen t b l ds = mconcat . (<$> [b .. t]) $ \y ->
 
 toDiagram1 :: (Int8, Int8) -> Map (Int8, Int8) CircuitDiagramElem -> Diagram B
 toDiagram1 (x, y) ds = case ds !? (x, y) of
-	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
 	Just HLineD -> moveTo ((- fromIntegral x) ^& fromIntegral y) hLineD
+	Just NotGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) notGateD
+	Just AndGateD -> moveTo ((- fromIntegral x) ^& fromIntegral y) andGateD
 	_ -> mempty
 
 sampleCircuitDiagram :: CircuitDiagram
 sampleCircuitDiagram = toCircuitDiagram sampleCircuitBuilder ow
 	where
-	((_iw, ow), _) = sampleCircuitBuilder `runState` initCBState
+	((_i1, _i2, ow), _) = sampleCircuitBuilder `runState` initCBState
 
 tryDiagrams :: IO ()
 tryDiagrams = renderSVG "sample.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram

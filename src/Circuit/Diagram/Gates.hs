@@ -1,14 +1,17 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Circuit.Diagram.Gates (notGateD, hLineD) where
+module Circuit.Diagram.Gates (andGateD, notGateD, hLineD) where
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 
+import Circuit.Diagram.AndGate
+
 notGateD :: Diagram B
-notGateD = (moveTo ((- 1) ^& 0) (lineRight 0.1) <> notGateDPure <> moveTo (1 ^& 0) (lineRight (- 0.15)))
-	`withEnvelope'` (rect 2 3 :: Diagram B)
+notGateD = moveTo ((- 1) ^& 0)
+	$ (moveTo ((- 1) ^& 0) (lineRight 0.1) <> notGateDPure <> moveTo (1 ^& 0) (lineRight (- 0.15)))
+		`withEnvelope'` (rect 2 3 :: Diagram B)
 
 notGateDPure :: Diagram B
 notGateDPure = (moveTo ((- 0.45) ^& 0) (triangle1_4 1.5)  <>  moveTo (0.66 ^& 0) (circleB (1.5 / 8))) # lwL 0.08
@@ -27,4 +30,5 @@ circleB :: Double -> Diagram B
 circleB = circle
 
 hLineD :: Diagram B
-hLineD = (strokeT (fromOffsets [unitX]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
+hLineD = moveTo ((- 1) ^& 0)
+	$ (strokeT (fromOffsets [unitX]) # lwL 0.08) `withEnvelope'` (rect 1 1 :: Diagram B)
