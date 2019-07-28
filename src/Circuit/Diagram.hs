@@ -6,8 +6,8 @@ module Circuit.Diagram where
 import Prelude as P
 
 import Control.Monad.State
+import Data.Maybe
 import Data.Map.Strict
-import Data.Bool
 import Data.Int
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
@@ -17,6 +17,7 @@ import CircuitCore
 import CircuitTypes
 
 import Circuit.Diagram.CircuitDiagram
+import Circuit.Diagram.Route
 
 type DiagramBuilder = State (Map BasicGate [(Bool, (Int8, Int8))])
 
@@ -31,21 +32,6 @@ fromCBStateBuilder n cbs ow pos cd = do
 		Nothing -> do
 			modify $ insert bgt [(True, pos)]
 			newFromCBStateBuilder n cbs bgt pos cd
-
-route :: (Int8, Int8) -> (Int8, Int8) -> CircuitDiagram -> [(Int8, Int8)]
-route (x, y) (x', y') cd
-	| x == x' && y' > y = let
-		xys = [(x, y)]
-		xys' = xys ++ ((x ,) <$> [y + 1 .. y' - 1])
-		xys'' = xys' ++ [(x, y')] in
-		xys''
-	| x > x' && y' > y = let
-		xys = [(x, y)]
-		xys' = xys ++ [(x, y + 1)]
-		xys'' = xys' ++ ((, y + 1) <$> [x - 1, x - 2 .. x' + 1])
-		xys''' = xys'' ++ [(x', y + 1)]
-		xys4 = xys''' ++ ((x' ,) <$> [y + 2 .. y']) in
-		xys4
 
 data Dir = T | B | L | R deriving Show
 
@@ -66,7 +52,7 @@ routeToLines org dir xys = error $ "routeToLInes: " ++ show org ++ " " ++ show d
 fromTo :: (Int8, Int8) -> (Bool, (Int8, Int8)) -> CircuitDiagram -> CircuitDiagram
 fromTo (x, y) (org, (x', y')) cd = cd {
 	cdDiagram = P.foldr (uncurry insert) (cdDiagram cd)
-		. routeToLines org L $ route (x, y) (x', y') cd }
+		. routeToLines org L . fromJust $ route (x, y) (x', y') cd }
 
 newFromCBStateBuilder :: Word -> CBState -> BasicGate -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
 newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
@@ -144,7 +130,8 @@ fromCBState n cbs ow pos@(x, y) cd = case cbsGate cbs !? ow of
 		Nothing -> cd''
 		where
 		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-		cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
+		cd'' = cd { cdDiagram = stump (x + 1, y) 2 3
+			. insert (x + 1, y) NotGateD $ cdDiagram cd' }
 	Just (AndGate i1 i2) -> let
 		cdcd1 = case getOWire cbs i1 of
 			Just ow1 -> let
@@ -165,7 +152,8 @@ fromCBState n cbs ow pos@(x, y) cd = case cbsGate cbs !? ow of
 		cdcd2
 		where
 		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-		cd'' = cd' { cdDiagram = insert (x + 1, y) AndGateD $ cdDiagram cd' }
+		cd'' = cd' { cdDiagram = stump (x + 1, y) 3 3
+			. insert (x + 1, y) AndGateD $ cdDiagram cd' }
 	_ -> error "yet"
 
 getOWire :: CBState -> IWire -> Maybe OWire
@@ -180,3 +168,11 @@ sampleCircuitDiagram2 = toCircuitDiagram 4 sampleCircuitBuilder2 ow
 tryDiagrams, tryDiagrams2 :: IO ()
 tryDiagrams = renderSVG "sample.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram
 tryDiagrams2 = renderSVG "sample2.svg" (mkWidth 400) $ toDiagram sampleCircuitDiagram2
+
+stump :: (Int8, Int8) -> Int8 -> Int8 -> Map (Int8, Int8) CircuitDiagramElem ->
+	Map (Int8, Int8) CircuitDiagramElem
+stump (x0, y0) w h m = P.foldr (\p -> insert p Stump) m [ (x, y) |
+	x <- [x0 .. x0 + w'], y <- [y0 - h' .. y0 + h'], (x, y) /= (x0, y0) ]
+	where
+	w' = w - 1
+	h' = (h - 1) `div` 2

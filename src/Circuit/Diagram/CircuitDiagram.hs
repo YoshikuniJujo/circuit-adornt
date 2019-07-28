@@ -25,6 +25,7 @@ data CircuitDiagramElem
 	= HLineD | VLineD | TopLeftD | TopRightD | BottomLeftD | BottomRightD
 	| TLineD | LTLineD
 	| NotGateD | AndGateD
+	| Stump
 	deriving Show
 
 initCircuitDiagram :: CircuitDiagram

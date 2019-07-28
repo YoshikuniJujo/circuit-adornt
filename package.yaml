@@ -27,6 +27,7 @@ dependencies:
 - random
 - diagrams-lib
 - diagrams-svg
+- heaps
 
 library:
   source-dirs: src
