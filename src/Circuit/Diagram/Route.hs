@@ -30,9 +30,11 @@ instance AStar CircuitDiagramAStar where
 data VH = Vertical | Horizontal deriving Show
 
 nextPos :: CircuitDiagramAStar -> (Int8, Int8) -> [(Int8, Int8)]
-nextPos cda (x, y) =
-	P.filter (checkPos cda Vertical) [(x, y - 1), (x, y + 1)] ++
-	P.filter (checkPos cda Horizontal) [(x - 1, y), (x + 1, y)]
+nextPos cda p@(x, y)
+--	| p == cdaStart cda = [(x + 1, y)]
+	| otherwise =
+		P.filter (checkPos cda Vertical) [(x, y - 1), (x, y + 1)] ++
+		P.filter (checkPos cda Horizontal) [(x - 1, y), (x + 1, y)]
 
 checkPos :: CircuitDiagramAStar -> VH -> (Int8, Int8) -> Bool
 checkPos cda vh ps

@@ -41,13 +41,20 @@ routeToLines False _ [(x, y)] = [((x, y), LTLineD)]
 routeToLines True _ [(x, y)] = [((x, y), TLineD)]
 routeToLines org L ((x, y) : xys@((x', y') : _))
 	| x == x' && y + 1 == y' = ((x, y), TopRightD) : routeToLines org T xys
+	| x + 1 == x' && y == y' = ((x, y), HLineD) : routeToLines org L xys
+	| x - 1 == x' && y == y' = ((x, y), HLineD) : routeToLines org R xys
 routeToLines org T ((x, y) : xys@((x', y') : _))
 	| x == x' && y + 1 == y' = ((x, y), VLineD) : routeToLines org T xys
 	| x - 1 == x' && y == y' = ((x, y), BottomRightD) : routeToLines org R xys
+	| x + 1 == x' && y == y' = ((x, y), BottomLeftD) : routeToLines org L xys
 routeToLines org R ((x, y) : xys@((x', y') : _))
 	| x - 1 == x' && y == y' = ((x, y), HLineD) : routeToLines org R xys
 	| x == x' && y + 1 == y' = ((x, y), TopLeftD) : routeToLines org T xys
-routeToLines org dir xys = error $ "routeToLInes: " ++ show org ++ " " ++ show dir ++ " " ++ show xys
+	| x == x' && y - 1 == y' = ((x, y), BottomLeftD) : routeToLines org B xys
+routeToLines org B ((x, y) : xys@((x', y') : _))
+	| x == x' && y - 1 == y' = ((x, y), VLineD) : routeToLines org B xys
+	| x - 1 == x' && y == y' = ((x, y), TopRightD) : routeToLines org R xys
+routeToLines org dir xys = error $ "routeToLines: " ++ show org ++ " " ++ show dir ++ " " ++ show xys
 
 fromTo :: (Int8, Int8) -> (Bool, (Int8, Int8)) -> CircuitDiagram -> CircuitDiagram
 fromTo (x, y) (org, (x', y')) cd = cd {
@@ -62,26 +69,18 @@ newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
 			Nothing -> return cd''
 			where
 			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-			cd'' = cd { cdDiagram = insert (x + 1, y) NotGateD $ cdDiagram cd' }
+			cd'' = cd { cdDiagram = stump (x + 1, y) 2 3 . insert (x + 1, y) NotGateD $ cdDiagram cd' }
 		AndGate i1 i2 -> do
 			cdcd1 <- case getOWire cbs i1 of
-				Just ow1 -> let
-					cd3 = cd'' { cdDiagram = insert (x + 4, y + 1) TopRightD $ cdDiagram cd'' }
-					cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y + dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
-					cd5 = cd4 { cdDiagram = insert (x + 4, y + fromIntegral n) BottomLeftD $ cdDiagram cd4 } in
-					fromCBStateBuilder (n `div` 2) cbs ow1 (x + 5, y + fromIntegral n) cd5
+				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 4, y + 1) cd''
 				Nothing -> return cd''
 			cdcd2 <- case getOWire cbs i2 of
-				Just ow1 -> let
-					cd3 = cdcd1 { cdDiagram = insert (x + 4, y - 1) BottomRightD $ cdDiagram cdcd1 }
-					cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y - dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
-					cd5 = cd4 { cdDiagram = insert (x + 4, y - fromIntegral n) TopLeftD $ cdDiagram cd4 } in
-					fromCBStateBuilder (n `div` 2) cbs ow1 (x + 5, y - fromIntegral n) cd5
+				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 4, y - 1) cdcd1
 				Nothing -> return cdcd1
 			return cdcd2
 			where
 			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-			cd'' = cd' { cdDiagram = insert (x + 1, y) AndGateD $ cdDiagram cd' }
+			cd'' = cd' { cdDiagram = stump (x + 1, y) 2 3 . insert (x + 1, y) AndGateD $ cdDiagram cd' }
 		_ -> error "yet"
 
 sampleCircuitBuilder :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, OWire)
@@ -122,39 +121,6 @@ sampleCircuitBuilder2 = do
 toCircuitDiagram :: Word -> CircuitBuilder a -> OWire -> CircuitDiagram
 toCircuitDiagram n cb ow = fromCBStateBuilder n cbs ow (0, 0) initCircuitDiagram `evalState` empty
 	where cbs = cb `execState` initCBState
-
-fromCBState :: Word -> CBState -> OWire -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
-fromCBState n cbs ow pos@(x, y) cd = case cbsGate cbs !? ow of
-	Just (NotGate iw) -> case getOWire cbs iw of
-		Just ow' -> fromCBState n cbs ow' (x + 3, y) cd''
-		Nothing -> cd''
-		where
-		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-		cd'' = cd { cdDiagram = stump (x + 1, y) 2 3
-			. insert (x + 1, y) NotGateD $ cdDiagram cd' }
-	Just (AndGate i1 i2) -> let
-		cdcd1 = case getOWire cbs i1 of
-			Just ow1 -> let
-				cd3 = cd'' { cdDiagram = insert (x + 4, y + 1) TopRightD $ cdDiagram cd'' }
-				cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y + dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
-				cd5 = cd4 { cdDiagram = insert (x + 4, y + fromIntegral n) BottomLeftD $ cdDiagram cd4 }
-				cd6 = fromCBState (n `div` 2) cbs ow1 (x + 5, y + fromIntegral n) cd5 in
-				cd6
-			Nothing -> cd''
-		cdcd2 = case getOWire cbs i2 of
-			Just ow1 -> let
-				cd3 = cdcd1 { cdDiagram = insert (x + 4, y - 1) BottomRightD $ cdDiagram cdcd1 }
-				cd4 = cd3 { cdDiagram = P.foldr (\dy -> insert (x + 4, y - dy) VLineD) (cdDiagram cd3) [2 .. fromIntegral n - 1] }
-				cd5 = cd4 { cdDiagram = insert (x + 4, y - fromIntegral n) TopLeftD $ cdDiagram cd4 }
-				cd6 = fromCBState (n `div` 2) cbs ow1 (x + 5, y - fromIntegral n) cd5 in
-				cd6
-			Nothing -> cdcd1 in
-		cdcd2
-		where
-		cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-		cd'' = cd' { cdDiagram = stump (x + 1, y) 3 3
-			. insert (x + 1, y) AndGateD $ cdDiagram cd' }
-	_ -> error "yet"
 
 getOWire :: CBState -> IWire -> Maybe OWire
 getOWire cbs iw = fst . head <$> cbsWireConn cbs !? iw
