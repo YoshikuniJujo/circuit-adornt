@@ -41,6 +41,7 @@ routeToLines False _ [(x, y)] = [((x, y), LTLineD)]
 routeToLines True _ [(x, y)] = [((x, y), TLineD)]
 routeToLines org L ((x, y) : xys@((x', y') : _))
 	| x == x' && y + 1 == y' = ((x, y), TopRightD) : routeToLines org T xys
+	| x == x' && y - 1 == y' = ((x, y), BottomRightD) : routeToLines org B xys
 	| x + 1 == x' && y == y' = ((x, y), HLineD) : routeToLines org L xys
 	| x - 1 == x' && y == y' = ((x, y), HLineD) : routeToLines org R xys
 routeToLines org T ((x, y) : xys@((x', y') : _))
@@ -56,31 +57,56 @@ routeToLines org B ((x, y) : xys@((x', y') : _))
 	| x - 1 == x' && y == y' = ((x, y), TopRightD) : routeToLines org R xys
 routeToLines org dir xys = error $ "routeToLines: " ++ show org ++ " " ++ show dir ++ " " ++ show xys
 
+routeToLines' :: Dir -> [(Int8, Int8)] -> [((Int8, Int8), CircuitDiagramElem)]
+routeToLines' _ [(x, y)] = [((x, y), HLineD)]
+routeToLines' L ((x, y) : xys@((x', y') : _))
+	| x == x' && y + 1 == y' = ((x, y), TopRightD) : routeToLines' T xys
+	| x == x' && y - 1 == y' = ((x, y), BottomRightD) : routeToLines' B xys
+	| x + 1 == x' && y == y' = ((x, y), HLineD) : routeToLines' L xys
+	| x - 1 == x' && y == y' = ((x, y), HLineD) : routeToLines' R xys
+routeToLines' T ((x, y) : xys@((x', y') : _))
+	| x == x' && y + 1 == y' = ((x, y), VLineD) : routeToLines' T xys
+	| x - 1 == x' && y == y' = ((x, y), BottomRightD) : routeToLines' R xys
+	| x + 1 == x' && y == y' = ((x, y), BottomLeftD) : routeToLines' L xys
+routeToLines' R ((x, y) : xys@((x', y') : _))
+	| x - 1 == x' && y == y' = ((x, y), HLineD) : routeToLines' R xys
+	| x == x' && y + 1 == y' = ((x, y), TopLeftD) : routeToLines' T xys
+	| x == x' && y - 1 == y' = ((x, y), BottomLeftD) : routeToLines' B xys
+routeToLines' B ((x, y) : xys@((x', y') : _))
+	| x == x' && y - 1 == y' = ((x, y), VLineD) : routeToLines' B xys
+	| x - 1 == x' && y == y' = ((x, y), TopRightD) : routeToLines' R xys
+routeToLines' dir xys = error $ "routeToLines': " ++ " " ++ show dir ++ " " ++ show xys
+
 fromTo :: (Int8, Int8) -> (Bool, (Int8, Int8)) -> CircuitDiagram -> CircuitDiagram
 fromTo (x, y) (org, (x', y')) cd = cd {
 	cdDiagram = P.foldr (uncurry insert) (cdDiagram cd)
 		. routeToLines org L . fromJust $ route (x, y) (x', y') cd }
 
+fromTo' :: (Int8, Int8) -> (Int8, Int8) -> CircuitDiagram -> CircuitDiagram
+fromTo' (x, y) (x', y') cd = cd {
+	cdDiagram = P.foldr (uncurry insert) (cdDiagram cd)
+		. routeToLines' L . fromJust $ route (x, y) (x', y') cd }
+
 newFromCBStateBuilder :: Word -> CBState -> BasicGate -> (Int8, Int8) -> CircuitDiagram -> DiagramBuilder CircuitDiagram
 newFromCBStateBuilder n cbs bgt pos@(x, y) cd =
 	case bgt of
 		NotGate iw -> case getOWire cbs iw of
-			Just ow' -> fromCBStateBuilder n cbs ow' (x + 3, y) cd''
+			Just ow' -> fromCBStateBuilder n cbs ow' (x + 5, y) $ fromTo' (x, y) (x + 2, y) cd''
 			Nothing -> return cd''
 			where
 			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-			cd'' = cd { cdDiagram = stump (x + 1, y) 2 3 . insert (x + 1, y) NotGateD $ cdDiagram cd' }
+			cd'' = cd { cdDiagram = stump (x + 3, y) 2 3 . insert (x + 3, y) NotGateD $ cdDiagram cd' }
 		AndGate i1 i2 -> do
 			cdcd1 <- case getOWire cbs i1 of
-				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 4, y + 1) cd''
+				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 6, y + 1) $ fromTo' (x, y) (x + 2, y) cd''
 				Nothing -> return cd''
 			cdcd2 <- case getOWire cbs i2 of
-				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 4, y - 1) cdcd1
+				Just ow1 -> fromCBStateBuilder (n `div` 2) cbs ow1 (x + 6, y - 1) cdcd1
 				Nothing -> return cdcd1
 			return cdcd2
 			where
 			cd' = cd { cdDiagram = insert pos HLineD $ cdDiagram cd }
-			cd'' = cd' { cdDiagram = stump (x + 1, y) 2 3 . insert (x + 1, y) AndGateD $ cdDiagram cd' }
+			cd'' = cd' { cdDiagram = stump (x + 3, y) 3 3 . insert (x + 3, y) AndGateD $ cdDiagram cd' }
 		_ -> error "yet"
 
 sampleCircuitBuilder :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, OWire)
