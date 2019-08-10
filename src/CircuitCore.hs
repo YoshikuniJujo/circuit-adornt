@@ -78,7 +78,7 @@ peekOWire w Circuit { cctGate = gs, cctWireStt = wst } =
 	fromJust $ calcGate wst <$> (gs !? w)
 
 calcGate, checkOWire :: Map IWire [Bits] -> BasicGate -> Bits
-calcGate _ (ConstGate bs) = bs
+calcGate _ (ConstGate bs) = Bits bs
 calcGate wst (IdGate i) = fromMaybe (Bits 0) $ wst !!? i
 calcGate wst (NotGate i) = maybe (Bits 1) notBits $ wst !!? i
 calcGate wst (AndGate a_ b_) =
@@ -111,7 +111,7 @@ delay iw n = modify insDelay
 	where insDelay cbs = cbs { cbsDelay = insert iw n $ cbsDelay cbs }
 
 constGate :: Bits -> CircuitBuilder OWire
-constGate bs = do
+constGate (Bits bs) = do
 	o <- makeOWire
 	modify $ insGate (ConstGate bs) o
 	return o

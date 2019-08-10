@@ -1,10 +1,13 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module CircuitTypes where
+module CircuitTypes (
+	CBState(..), OWire(..), BasicGate(..), IWire, CircuitBuilder, Bits(..), BitPosIn, BitPosOut, BitLen,
+	Circuit(..), FromOWire, makeIWire, makeOWireTri, makeOWire, andBits, orBits, fromOWire, testBit, notBits,
+	triIWire, gateWires, initCBState, bitsToWord, wordToBits
+	) where
 
 import Prelude as P
 
-import Control.Monad.State
 import Data.Bits ((.&.), (.|.))
 import Data.Word
 import Data.Map
@@ -13,7 +16,7 @@ import Data.Array as A
 import qualified Data.Bits as B
 import qualified Data.List as L
 
-import Tools
+import CircuitTypes.Builder
 
 newtype Bits = Bits Word64 deriving (Show, Eq, Ord)
 
@@ -26,8 +29,6 @@ orBits (Bits v) (Bits w) = Bits $ v .|. w
 
 testBit :: Bits -> Word8 -> Bool
 testBit (Bits w) i = B.testBit w $ fromIntegral i
-
-type FromOWire = ((BitLen, BitPosOut), (BitLen, BitPosIn))
 
 fromOWire :: FromOWire -> Bits -> Bits -> Bits
 fromOWire ((blo, bpo_), (bli, bpi_)) (Bits bo) (Bits bi)
@@ -56,16 +57,6 @@ maskBits ln ps = maskBitsList A.! (fromIntegral ln * 64 + fromIntegral ps)
 maskBitsList :: Array Int Word64
 maskBitsList = listArray (0, 4159) $ P.concatMap (\ln -> P.map (maskBits' ln) [0 .. 63]) [0 .. 64]
 
-newtype IWire = IWire Word32 deriving (Show, Eq, Ord)
-data OWire = OWire Word32 (Maybe IWire) deriving (Show, Eq, Ord)
-
-triIWire :: OWire -> Maybe IWire
-triIWire (OWire _ mi) = mi
-
-type BitLen = Word8
-type BitPosIn = Word8
-type BitPosOut = Word8
-
 bitsToWord :: Bits -> Word64
 bitsToWord (Bits w) = w
 
@@ -77,41 +68,3 @@ data Circuit = Circuit {
 	cctWireConn :: Map IWire [(OWire, FromOWire)],
 	cctWireStt :: Map IWire [Bits] }
 	deriving Show
-
-type CircuitBuilder = State CBState
-
-makeIWire :: CircuitBuilder IWire
-makeIWire = IWire <$> getModify cbsWireNum sccWireNum
-
-makeOWire :: CircuitBuilder OWire
-makeOWire = (`OWire` Nothing) <$> getModify cbsWireNum sccWireNum
-
-makeOWireTri :: IWire -> CircuitBuilder OWire
-makeOWireTri i = (`OWire` Just i) <$> getModify cbsWireNum sccWireNum
-
-sccWireNum :: CBState -> CBState
-sccWireNum cbs = cbs { cbsWireNum = cbsWireNum cbs + 1 }
-
-data CBState = CBState {
-	cbsWireNum :: Word32,
-	cbsGate :: Map OWire BasicGate,
-	cbsWireConn :: Map IWire [(OWire, FromOWire)],
-	cbsDelay :: Map IWire Word8 }
-	deriving Show
-
-initCBState :: CBState
-initCBState = CBState {
-	cbsWireNum = 0, cbsGate = empty, cbsWireConn = empty, cbsDelay = empty }
-
-data BasicGate
-	= ConstGate Bits
-	| IdGate IWire | NotGate IWire
-	| AndGate IWire IWire | OrGate IWire IWire
-	deriving (Show, Eq, Ord)
-
-gateWires :: BasicGate -> [IWire]
-gateWires (ConstGate _) = []
-gateWires (IdGate i) = [i]
-gateWires (NotGate i) = [i]
-gateWires (AndGate a b) = [a, b]
-gateWires (OrGate a b) = [a, b]
