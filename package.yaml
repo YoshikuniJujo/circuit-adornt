@@ -28,6 +28,7 @@ dependencies:
 - diagrams-lib
 - diagrams-svg
 - heaps
+- circuit-adornt-build
 
 library:
   source-dirs: src
