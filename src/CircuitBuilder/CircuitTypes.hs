@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module CircuitTypes.Builder (
+module CircuitBuilder.CircuitTypes (
 	CircuitBuilder, CBState(..), initCBState,
-	IWire, makeIWire, OWire(..), triIWire, makeOWire, makeOWireTri,
+	IWire(..), makeIWire, OWire(..), triIWire, makeOWire, makeOWireTri,
 	BasicGate(..), gateWires,
 	FromOWire, BitLen, BitPosIn, BitPosOut
 	) where
