@@ -42,7 +42,7 @@ packages:
 # extra-deps: []
 extra-deps:
     - git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
-      commit: 3083b921ff41bd45aad20aa3b31bb3682c6997da
+      commit: c365dc1defa918a884056e17166a54e32e718c5d
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

@@ -6,18 +6,18 @@
 packages:
 - completed:
     cabal-file:
-      size: 1833
-      sha256: 95e57ea977325f8b96e2ab13c06058227ec885bf94202a897d40f1610c322a9d
+      size: 1841
+      sha256: dcf88a87adb121a466db6fd7302643975f2332feb5608beaa4bd97e6522dbd7f
     name: circuit-adornt-build
     version: 0.1.0.0
     git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
     pantry-tree:
-      size: 767
-      sha256: 23ba0a27b6c5e12c67021b9f58e4f723c6fc7861108cc7cd0726a238d345f758
-    commit: 3083b921ff41bd45aad20aa3b31bb3682c6997da
+      size: 775
+      sha256: 299d7217fb6a462ddbdca6fdaf1f94c6ab161e3932ab215510ede0cdc08037fb
+    commit: c365dc1defa918a884056e17166a54e32e718c5d
   original:
     git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
-    commit: 3083b921ff41bd45aad20aa3b31bb3682c6997da
+    commit: c365dc1defa918a884056e17166a54e32e718c5d
 snapshots:
 - completed:
     size: 500539

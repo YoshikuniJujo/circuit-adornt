@@ -24,7 +24,7 @@ import Data.Map
 import qualified Data.Map as M
 
 import CircuitTypes
-import CircuitBuilder
+import Circuit.Adornt.Builder as CircuitBuilder
 import Tools
 
 makeCircuit :: [Bits] -> CircuitBuilder a -> (a, Circuit)

@@ -16,7 +16,7 @@ import Data.Array as A
 import qualified Data.Bits as B
 import qualified Data.List as L
 
-import CircuitBuilder
+import Circuit.Adornt.Builder
 
 newtype Bits = Bits Word64 deriving (Show, Eq, Ord)
 
