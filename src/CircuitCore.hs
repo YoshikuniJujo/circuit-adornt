@@ -9,7 +9,10 @@ module CircuitCore (
 	connectWire, delay,
 	setBits, peekOWire, bitsToWord, wordToBits,
 
-	initCBState
+	initCBState,
+
+	Wire11, Wire21, Wire31, Wire41, Wire22,
+	connectWire0, connectWire64, connectWire0_64
 	) where
 
 import Prelude
