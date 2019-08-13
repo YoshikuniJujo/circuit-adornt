@@ -17,19 +17,6 @@ import Tools
 
 import qualified Data.Bits as B
 
-xorGate :: CircuitBuilder Wire21
-xorGate = do
-	(ain, aout) <- idGate
-	(bin, bout) <- idGate
-	(aa, ab, ao) <- andGate
-	(na, nb, no) <- norGate
-	(ad, nor, xo) <- norGate
-	connectWire64 aout `mapM_` [aa, na]
-	connectWire64 bout `mapM_` [ab, nb]
-	connectWire64 ao ad
-	connectWire64 no nor
-	return (ain, bin, xo)
-
 andNotBGate :: CircuitBuilder Wire21
 andNotBGate = do
 	(ni, no) <- notGate
