@@ -1,7 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wall -fno-warn-tabs #-}
 
-module Element where
+module Element (module Element, module Circuit.Adornt.Parts) where
 
 import Control.Arrow
 import Control.Monad
@@ -10,23 +10,12 @@ import Data.List
 import Data.Bool
 import Data.Word
 
+import Circuit.Adornt.Parts
+
 import Circuit
 import Tools
 
 import qualified Data.Bits as B
-
-norGate, nandGate :: CircuitBuilder Wire21
-norGate = do
-	(oa, ob, oo) <- orGate
-	(ni, no) <- notGate
-	connectWire64 oo ni
-	return (oa, ob, no)
-
-nandGate = do
-	(aa, ab, ao) <- andGate
-	(ni, no) <- notGate
-	connectWire64 ao ni
-	return (aa, ab, no)
 
 xorGate :: CircuitBuilder Wire21
 xorGate = do
