@@ -17,13 +17,6 @@ import Tools
 
 import qualified Data.Bits as B
 
-andNotBGate :: CircuitBuilder Wire21
-andNotBGate = do
-	(ni, no) <- notGate
-	(aa, ab, ao) <- andGate
-	connectWire64 no ab
-	return (aa, ni, ao)
-
 multiple :: CircuitBuilder Wire21 -> Word16 -> CircuitBuilder ([IWire], OWire)
 multiple _ n | n < 0 = error "circuit-adornt.Element.multiple _ n | n < 0"
 multiple _ 0 = ([] ,) <$> constGate (Bits 0)
