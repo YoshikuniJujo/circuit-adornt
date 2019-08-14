@@ -17,19 +17,6 @@ import Tools
 
 import qualified Data.Bits as B
 
-multiple :: CircuitBuilder Wire21 -> Word16 -> CircuitBuilder ([IWire], OWire)
-multiple _ n | n < 0 = error "circuit-adornt.Element.multiple _ n | n < 0"
-multiple _ 0 = ([] ,) <$> constGate (Bits 0)
-multiple _ 1 = first (: []) <$> idGate
-multiple g 2 = (\(a, b, o) -> ([a, b], o)) <$> g
-multiple g n = do
-	(is1, o1) <- multiple g (n `div` 2)
-	(is2, o2) <- multiple g (n - n `div` 2)
-	(a, b, o) <- g
-	connectWire64 o1 a
-	connectWire64 o2 b
-	return (is1 ++ is2, o)
-
 multi3 :: CircuitBuilder Wire21 -> CircuitBuilder Wire31
 multi3 g = do
 	(is, o) <- multiple g 3
@@ -73,7 +60,7 @@ inverse o i = do
 	zipWithM_ connectWire64 [o, no] [ni, i]
 obverse = connectWire64
 
-mux2 :: CircuitBuilder (IWire, IWire, IWire, OWire)
+mux2 :: CircuitBuilder Wire31
 mux2 = do
 	(sl, is, o) <- multiplexer 2
 	let	(i0, i1) = listToTuple2 is
