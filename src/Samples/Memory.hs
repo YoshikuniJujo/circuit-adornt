@@ -27,7 +27,7 @@ testDflipflop = do
 registerFileWrite :: Word8 -> CircuitBuilder (IWire, IWire, IWire, IWire, [OWire])
 registerFileWrite n = do
 	(cl, ww, cwout) <- andGate
-	(addr, decout) <- decoder' $ fromIntegral n
+	(addr, decout) <- decoder $ fromIntegral n
 	(din, dout) <- idGate
 	(cws, decin, cout) <- unzip3 <$> fromIntegral n `replicateM` andGate
 	(cs, ds, qs, _nqs) <- unzip4 <$> fromIntegral n `replicateM` dflipflop
@@ -120,7 +120,7 @@ storeRegisterFile rfws adr_ d cct = let
 sramWrite :: Word8 -> CircuitBuilder (IWire, IWire, IWire, [OWire], [OWire])
 sramWrite n = do
 	(wein, weout) <- idGate
-	(addr, decs) <- decoder' $ fromIntegral n
+	(addr, decs) <- decoder $ fromIntegral n
 	(dtin, dtout) <- idGate
 	(decins, weins, cout) <- unzip3 <$> fromIntegral n `replicateM` andGate
 	(cs, ds, qs, _nqs) <- unzip4 <$> fromIntegral n `replicateM` dlatch

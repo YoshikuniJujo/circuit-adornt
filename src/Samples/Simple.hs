@@ -27,13 +27,11 @@ sampleTri = do
 	connectWire64 o2 oin
 	return (a1, b1, a2, b2, oout)
 
-decoder' :: Word8 -> CircuitBuilder (IWire, OWire)
-decoder' n = do
-	(iin, iout) <- idGate
+decoder'' :: Word8 -> CircuitBuilder (IWire, OWire)
+decoder'' n = do
 	(oin, oout) <- idGate
-	(is, os) <- decoder $ fromIntegral n
+	(iin, os) <- decoder $ fromIntegral n
 	let	n = fromIntegral $ length os
-	for_ (zip [0 ..] is) $ \(i, ip) -> connectWire (iout, 1, i) (ip, 1, 0)
 	for_ (zip [0 ..] os) $ \(i, op) -> connectWire (op, 1, 0) (oin, 1, i)
 	z <- constGate $ Bits 0
 	connectWire (z, 64 - n, 0) (oin, 64 - n, n)
