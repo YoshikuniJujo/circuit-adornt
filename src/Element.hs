@@ -56,15 +56,6 @@ mux4 = do
 	let	(i0, i1, i2, i3) = listToTuple4 is
 	return (sl, i0, i1, i2, i3, o)
 
-multiplexer :: Word16 -> CircuitBuilder (IWire, [IWire], OWire)
-multiplexer n = do
-	(slin, douts) <- decoder n
-	(as, bs, os) <- unzip3 <$> fromIntegral n `replicateM` andGate
-	(ois, oo) <- multiOrGate n
-	zipWithM_ connectWire0_64 douts as
-	zipWithM_ connectWire64 os ois
-	return (slin, bs, oo)
-
 testZero :: CircuitBuilder (IWire, OWire)
 testZero = do
 	(iin, iout) <- idGate
