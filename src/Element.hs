@@ -13,53 +13,13 @@ import Data.Word
 import Circuit.Adornt.Parts
 
 import Circuit
-import Tools
 
 import qualified Data.Bits as B
-
-multi3 :: CircuitBuilder Wire21 -> CircuitBuilder Wire31
-multi3 g = do
-	(is, o) <- multiple g 3
-	let	(i0, i1, i2) = listToTuple3 is
-	return (i0, i1, i2, o)
-
-multi4 :: CircuitBuilder Wire21 -> CircuitBuilder Wire41
-multi4 g = do
-	(is, o) <- multiple g 4
-	let	(i0, i1, i2, i3) = listToTuple4 is
-	return (i0, i1, i2, i3, o)
-
-multiAndGate, multiOrGate, multiXorGate :: Word16 -> CircuitBuilder ([IWire], OWire)
-[multiAndGate, multiOrGate, multiXorGate] = multiple <$> [andGate, orGate, xorGate]
-
-andGate3, orGate3, xorGate3 :: CircuitBuilder Wire31
-[andGate3, orGate3, xorGate3] = multi3 <$> [andGate, orGate, xorGate]
-
-andGate4, orGate4, xorGate4 :: CircuitBuilder Wire41
-[andGate4, orGate4, xorGate4] = multi4 <$> [andGate, orGate, xorGate]
-
-mux2 :: CircuitBuilder Wire31
-mux2 = do
-	(sl, is, o) <- multiplexer 2
-	let	(i0, i1) = listToTuple2 is
-	return (sl, i0, i1, o)
-
-mux3 :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
-mux3 = do
-	(sl, is, o) <- multiplexer 3
-	let	(i0, i1, i2) = listToTuple3 is
-	return (sl, i0, i1, i2, o)
-
-mux4 :: CircuitBuilder (IWire, IWire, IWire, IWire, IWire, OWire)
-mux4 = do
-	(sl, is, o) <- multiplexer 4
-	let	(i0, i1, i2, i3) = listToTuple4 is
-	return (sl, i0, i1, i2, i3, o)
 
 testZero :: CircuitBuilder (IWire, OWire)
 testZero = do
 	(iin, iout) <- idGate
-	(ois, oo) <- multiOrGate 64
+	(ois, oo) <- multiple orGate 64
 	(ni, no) <- notGate
 	for_ (zip [0 ..] ois) $ \(i, oi) -> connectWire (iout, 1, i) (oi, 1, 0)
 	connectWire0 oo ni
@@ -153,12 +113,12 @@ connectWireOutsToIn os i = zipWithM_ (\n o -> connectWire (o, 1, 0) (i, 1, n)) [
 
 allAnd, allOr :: [OWire] -> CircuitBuilder OWire
 allAnd os = do
-	(as, o) <- multiAndGate . fromIntegral $ length os
+	(as, o) <- multiple andGate . fromIntegral $ length os
 	zipWithM_ connectWire64 os as
 	return o
 
 allOr os = do
-	(xs, o) <- multiOrGate . fromIntegral $ length os
+	(xs, o) <- multiple orGate . fromIntegral $ length os
 	zipWithM_ connectWire64 os xs
 	return o
 

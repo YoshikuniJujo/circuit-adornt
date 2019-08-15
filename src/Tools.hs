@@ -27,18 +27,6 @@ log2 i = i2 0
 		| 2 ^ j >= i = j
 		| otherwise = i2 $ j + 1
 
-listToTuple2 :: [a] -> (a, a)
-listToTuple2 [x, y] = (x, y)
-listToTuple2 _ = error "circuit-adornt.Tools.listToTuple2 _"
-
-listToTuple3 :: [a] -> (a, a, a)
-listToTuple3 [x, y, z] = (x, y, z)
-listToTuple3 _ = error "circuit-adornt.Tools.listToTuple3 _"
-
-listToTuple4 :: [a] -> (a, a, a, a)
-listToTuple4 [x, y, z, w] = (x, y, z, w)
-listToTuple4 _ = error "circuit-adornt.Tools.listToTuple4 _"
-
 unzip4 :: [(a, b, c, d)] -> ([a], [b], [c], [d])
 unzip4 [] = ([], [], [], [])
 unzip4 ((x, y, z, w) : xyzws) = (x : xs, y : ys, z : zs, w : ws)
