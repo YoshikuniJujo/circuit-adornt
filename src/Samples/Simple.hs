@@ -28,8 +28,8 @@ sampleTri = do
 	connectWire64 o2 oin
 	return (a1, b1, a2, b2, oout)
 
-decoder'' :: Word8 -> CircuitBuilder (IWire, OWire)
-decoder'' n = do
+decoder' :: Word8 -> CircuitBuilder (IWire, OWire)
+decoder' n = do
 	(oin, oout) <- idGate
 	(iin, os) <- decoder $ fromIntegral n
 	let	n = fromIntegral $ length os
