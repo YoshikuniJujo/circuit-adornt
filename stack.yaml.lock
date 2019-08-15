@@ -27,11 +27,11 @@ packages:
     git: https://github.com/YoshikuniJujo/circuit-adornt-parts.git
     pantry-tree:
       size: 647
-      sha256: 0247c8539f6ebb223c4b74c914feebed1024d39fd422bf10bb15e31f6514d46a
-    commit: 8ce5d3c4607180696f2b200dea6e4a5e72e68335
+      sha256: 3df0d233256af89e28fdc7bcdbfaf392234b38793640ebf5d60c28aca641c5ca
+    commit: adaba2c05a256118c875c3610656b158b3674d33
   original:
     git: https://github.com/YoshikuniJujo/circuit-adornt-parts.git
-    commit: 8ce5d3c4607180696f2b200dea6e4a5e72e68335
+    commit: adaba2c05a256118c875c3610656b158b3674d33
 snapshots:
 - completed:
     size: 500539
