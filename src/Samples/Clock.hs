@@ -5,7 +5,7 @@ module Samples.Clock where
 import Data.Word
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 
 data Clock = Clock {
 	clFrequency_2 :: Word8,

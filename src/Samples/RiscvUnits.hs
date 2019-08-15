@@ -5,7 +5,7 @@ module Samples.RiscvUnits where
 import Data.Word
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 import Samples.Memory
 
 data ProgramCounter = ProgramCounter {

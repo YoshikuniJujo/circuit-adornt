@@ -6,7 +6,7 @@ import Control.Monad
 import Data.Word
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 import Samples.Clock
 import Tools
 

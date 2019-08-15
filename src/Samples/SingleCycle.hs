@@ -3,7 +3,7 @@
 module Samples.SingleCycle where
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 import Samples.RiscvUnits
 import Samples.Clock
 import Samples.Alu

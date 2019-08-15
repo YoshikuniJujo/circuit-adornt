@@ -3,7 +3,7 @@
 module Samples.AluController where
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 
 aluController :: CircuitBuilder (IWire, IWire, OWire)
 aluController = do

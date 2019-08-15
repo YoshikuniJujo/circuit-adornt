@@ -3,7 +3,7 @@
 module Samples.ImmGen where
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 
 immGen :: CircuitBuilder (IWire, OWire)
 immGen = do

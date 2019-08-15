@@ -5,7 +5,7 @@ module Samples.CarryLookahead4 where
 import Data.Word
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 import Samples.CarryLookaheadCommon
 
 raiseGp :: Word8 -> CircuitBuilder (IWire, IWire, OWire, OWire)

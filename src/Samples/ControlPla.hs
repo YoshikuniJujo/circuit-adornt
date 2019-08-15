@@ -4,7 +4,7 @@
 module Samples.ControlPla where
 
 import Circuit
-import Element
+import Circuit.Adornt.Parts
 
 controlPla :: CircuitBuilder (IWire, OWire)
 controlPla = do

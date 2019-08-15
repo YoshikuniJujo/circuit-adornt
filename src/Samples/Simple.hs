@@ -12,8 +12,9 @@ import Data.Word
 
 import qualified Data.Bits as B
 
+import Circuit.Adornt.Parts
+
 import Circuit
-import Element
 import Tools
 
 import Samples.TryTools
