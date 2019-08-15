@@ -49,7 +49,7 @@ alu = do
 	zero <- constGate $ Bits 0
 	connectWire (zero, 63, 1) (slt, 63, 1)
 
-	(zin, zout) <- testZero
+	(zin, zout) <- zeroDetector
 	connectWire64 r zin
 
 	(clin, clout) <- idGate

@@ -3,7 +3,7 @@
 
 module Element (
 	xorGate, nandGate, andNotBGate, andGate3, andGate4, orGate4, xorGate3,
-	mux2, mux3, mux4, multiplexer, decoder, pla8, testZero,
+	mux2, mux3, mux4, multiplexer, decoder, pla8, zeroDetector,
 	dlatch, dflipflop
 	) where
 
@@ -12,8 +12,8 @@ import Data.Foldable
 import Circuit
 import Circuit.Adornt.Parts
 
-testZero :: CircuitBuilder (IWire, OWire)
-testZero = do
+zeroDetector :: CircuitBuilder (IWire, OWire)
+zeroDetector = do
 	(iin, iout) <- idGate
 	(ois, oo) <- multiple orGate 64
 	(ni, no) <- notGate
