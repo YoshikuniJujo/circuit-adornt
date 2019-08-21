@@ -20,18 +20,18 @@ packages:
     commit: 45a2e5d7435aba49bec4bb099ae22b38d764b995
 - completed:
     cabal-file:
-      size: 1601
-      sha256: c423701417b0c0eff6907c348e337a416ca1e53c82e71b4afc4d28fb4e91d4f5
+      size: 1627
+      sha256: e4394fe463d7078e17a475e84852f6c85ffff5c54ebace816a18c63796bd0154
     name: circuit-adornt-simulate
     version: 0.1.0.0
     git: https://github.com/YoshikuniJujo/circuit-adornt-simulate.git
     pantry-tree:
-      size: 696
-      sha256: 1ee8784ff352fac7b8a28391952e56f98734f091c045b351bba5b496e42653d1
-    commit: 20ae60c4928c8920c592d830a0ca0b4c8da40daa
+      size: 697
+      sha256: 88e5fee7c88fcc8f4dfa9498b1a68138e8728797e90eace755c7e5d5080c8225
+    commit: fa77775a948b6109e902cb967230868d5b55c576
   original:
     git: https://github.com/YoshikuniJujo/circuit-adornt-simulate.git
-    commit: 20ae60c4928c8920c592d830a0ca0b4c8da40daa
+    commit: fa77775a948b6109e902cb967230868d5b55c576
 - completed:
     cabal-file:
       size: 1524

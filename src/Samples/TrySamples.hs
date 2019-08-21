@@ -7,7 +7,6 @@ import Data.Word
 import Circuit.Adornt.Simulator
 import Circuit.Adornt.Builder
 
-import Samples.TryTools
 import Samples.Simple
 import Samples.Alu
 import Samples.Clock
@@ -38,7 +37,7 @@ trySingleCycle :: IO (
 	Clock, ProgramCounter, InstructionMemory, RegisterFileWithSwitch,
 	OWire, OWire, OWire, (OWire, OWire, OWire), CircuitSimulator )
 trySingleCycle = do
-	((cl, pc, im, rf, ctrl, aluctrl, imm, aluout), cct) <- makeCircuitRandomIO singleCycle
+	((cl, pc, im, rf, ctrl, aluctrl, imm, aluout), cct) <- prepareSimulatorRandomIO singleCycle
 	let	cct0 = resetClock cl cct
 		cct1 = foldr (uncurry $ storeInstructionMemory im) cct0
 			$ zip [0, 4 .. ] (wordToBits <$> sampleInstControlInstructions)

@@ -17,8 +17,6 @@ import Circuit.Adornt.Parts
 
 import Tools
 
-import Samples.TryTools
-
 sampleTri :: CircuitBuilder (IWire, IWire, IWire, IWire, OWire)
 sampleTri = do
 	(a1, b1, o1) <- triGate
