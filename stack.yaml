@@ -42,7 +42,7 @@ packages:
 # extra-deps: []
 extra-deps:
     - git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
-      commit: 50759de5c3ba9814ccb9aa579f0e543b4455d98d
+      commit: 45a2e5d7435aba49bec4bb099ae22b38d764b995
     - git: https://github.com/YoshikuniJujo/circuit-adornt-parts.git
       commit: 4e7c4cf9f4e8c63dba6d380983ba6412594bbfa4
 

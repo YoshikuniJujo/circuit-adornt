@@ -3,7 +3,7 @@
 module Circuit (
 	Circuit, makeCircuit, step, setBits, peekOWire, bitsToWord, wordToBits,
 	CircuitBuilder, connectWire, connectWire64, connectWire0, connectWire0_64,
-		delay, constGate, idGate, notGate, andGate, orGate, triGate,
+		delay, constGate, idGate, notGate, andGate, orGate, triGate, cheatGate,
 	IWire, OWire, Bits(..), BitLen, BitPosIn, BitPosOut,
 	setMultBits, peekMultOWires, Wire11, Wire21, Wire31, Wire41, Wire22
 	) where

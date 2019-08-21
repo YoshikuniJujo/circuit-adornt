@@ -67,4 +67,4 @@ data Circuit = Circuit {
 	cctGate :: Map OWire BasicGate,
 	cctWireConn :: Map IWire [(OWire, FromOWire)],
 	cctWireStt :: Map IWire [Bits] }
-	deriving Show
+--	deriving Show

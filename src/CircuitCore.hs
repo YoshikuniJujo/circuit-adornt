@@ -5,7 +5,7 @@ module CircuitCore (
 	Circuit, makeCircuit, step,
 	CircuitBuilder,
 	IWire, OWire, Bits(..), BitLen, BitPosIn, BitPosOut,
-	CircuitCore.constGate, idGate, notGate, andGate, orGate, triGate,
+	CircuitCore.constGate, idGate, notGate, andGate, orGate, triGate, cheatGate,
 	connectWire, delay,
 	setBits, peekOWire, bitsToWord, wordToBits,
 
@@ -89,6 +89,8 @@ calcGate wst (AndGate a_ b_) =
 	fromMaybe (Bits 0) $ [ andBits a b | a <- wst !!? a_, b <- wst !!? b_ ]
 calcGate wst (OrGate a_ b_) =
 	fromMaybe (Bits 0) $ [ orBits a b | a <- wst !!? a_, b <- wst !!? b_  ]
+calcGate wst (CheatGate iws f) =
+	fromMaybe (Bits 0) $ [ wordToBits . f $ bitsToWord <$> is | is <- (wst !!?) `mapM` iws ]
 
 checkOWire = calcGate
 
