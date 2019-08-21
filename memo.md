@@ -21,8 +21,6 @@
 TODO
 ----
 
-それと、circuit-adornt-simulateやcircuit-adornt-diagramのインターフェースを
-きれいにして、circuit-partsへの依存を消そう。
 つぎのような感じにする。
 
 * circuit-adornt
@@ -35,5 +33,6 @@ TODO
 		+ circuit-adornt-parts
 			- circuit-adornt-build
 
-circuit-adornt-samplesもわけよう。
+circuit-adonrtのなかみを、circuit-adornt-samplesにうつす。
 circuit-adorntはメタパッケージにする。
+あるいは、メタパッケージではなくて、使いやすくいろいろをまとめたパッケージにするか。

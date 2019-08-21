@@ -21,30 +21,14 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- monads-tf
-- containers
-- array
-- random
-- diagrams-lib
-- diagrams-svg
-- heaps
 - circuit-adornt-simulate
+- circuit-adornt-diagram
 - circuit-adornt-build
+- circuit-adornt-samples
 - circuit-adornt-parts
 
 library:
   source-dirs: src
-
-executables:
-  circuit-adornt-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - circuit-adornt
 
 tests:
   circuit-adornt-test:
