@@ -2,7 +2,7 @@
 
 module Samples.AluController where
 
-import Circuit
+import Circuit.Adornt.Builder
 import Circuit.Adornt.Parts
 
 aluController :: CircuitBuilder (IWire, IWire, OWire)
@@ -29,7 +29,7 @@ aluController = do
 	connectWire (iout, 1, 13) `mapM_` [(i13, 1, 0), (i13', 1, 0)]
 	connectWire (iout, 1, 30) (i30, 1, 0)
 
-	cz <- constGate $ Bits 0
+	cz <- constGate 0
 	connectWire (a0, 1, 0) (oin, 1, 0)
 	connectWire (a1, 1, 0) (oin, 1, 1)
 	connectWire (a2, 1, 0) (oin, 1, 2)

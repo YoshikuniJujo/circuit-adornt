@@ -2,8 +2,9 @@
 
 module Samples.SingleCycle where
 
-import Circuit
 import Circuit.Adornt.Parts
+import Circuit.Adornt.Builder
+
 import Samples.RiscvUnits
 import Samples.Clock
 import Samples.Alu
@@ -19,7 +20,7 @@ singleCycle = do
 	cl <- clock 35
 	pc <- programCounter
 	(a, b, o) <- adder
-	four <- constGate $ Bits 4
+	four <- constGate 4
 	connectWire0 (clockSignal cl) (pcClock pc)
 	connectWire64 (pcOutput pc) a
 	connectWire64 four b

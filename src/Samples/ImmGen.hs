@@ -2,7 +2,7 @@
 
 module Samples.ImmGen where
 
-import Circuit
+import Circuit.Adornt.Builder
 import Circuit.Adornt.Parts
 
 immGen :: CircuitBuilder (IWire, OWire)
@@ -22,7 +22,7 @@ immGen = do
 	connectWire (iout, 4, 8) (ssb, 4, 1)
 	connectWire (fo, 4, 1) (oin, 4, 1)
 	(s3, i', s', sb', z) <- mux3
-	cz <- constGate $ Bits 0
+	cz <- constGate 0
 	connectWire (iout, 2, 5) (s3, 2, 0)
 	connectWire (iout, 1, 20) (i', 1, 0)
 	connectWire (iout, 1, 7) (s', 1, 0)

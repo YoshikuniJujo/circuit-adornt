@@ -5,8 +5,10 @@ module Samples.Memory where
 import Control.Monad
 import Data.Word
 
-import Circuit
+import Circuit.Adornt.Simulator
 import Circuit.Adornt.Parts
+import Circuit.Adornt.Builder
+
 import Samples.Clock
 import Tools
 
@@ -99,23 +101,23 @@ registerFileWithSwitch n = do
 		rfwsOuterWrite = w',
 		rfwsOuterWriteAddress = wa', rfwsOuterInput = d' }
 
-storeRegisterFile :: RegisterFileWithSwitch -> Word8 -> Bits -> Circuit -> Circuit
+storeRegisterFile :: RegisterFileWithSwitch -> Word8 -> Bits -> CircuitSimulator -> CircuitSimulator
 storeRegisterFile rfws adr_ d cct = let
 	cct0 = (!! 5) . iterate step
-		$ setBits (rfwsSwitch rfws) (Bits 1) cct
+		$ setBits (rfwsSwitch rfws) (wordToBits 1) cct
 	cct1 = (!! 5) . iterate step
 		. setBits (rfwsOuterWriteAddress rfws) adr
 		$ setBits (rfwsOuterInput rfws) d cct0
 	cct2 = (!! 10) . iterate step
-		. setBits (rfwsOuterClock rfws) (Bits 1)
-		$ setBits (rfwsOuterWrite rfws) (Bits 1) cct1
+		. setBits (rfwsOuterClock rfws) (wordToBits 1)
+		$ setBits (rfwsOuterWrite rfws) (wordToBits 1) cct1
 	cct3 = (!! 25) . iterate step
-		. setBits (rfwsOuterClock rfws) (Bits 0)
-		$ setBits (rfwsOuterWrite rfws) (Bits 0) cct2
+		. setBits (rfwsOuterClock rfws) (wordToBits 0)
+		$ setBits (rfwsOuterWrite rfws) (wordToBits 0) cct2
 	cct4 = (!! 5) . iterate step
-		$ setBits (rfwsSwitch rfws) (Bits 0) cct3 in
+		$ setBits (rfwsSwitch rfws) (wordToBits 0) cct3 in
 	cct4
-	where adr = Bits $ fromIntegral adr_
+	where adr = wordToBits $ fromIntegral adr_
 
 sramWrite :: Word8 -> CircuitBuilder (IWire, IWire, IWire, [OWire], [OWire])
 sramWrite n = do
@@ -174,15 +176,16 @@ sram n = do
 		srOuterInput = dt',
 		srDebugOutputs = qs }
 
-storeSram :: Sram -> Word8 -> Bits -> Circuit -> Circuit
-storeSram sr addr_ (Bits wdt) cct = let
+storeSram :: Sram -> Word8 -> Bits -> CircuitSimulator -> CircuitSimulator
+storeSram sr addr_ wdt_ cct = let
 	cct1 = (!! 15) . iterate step
-		$ setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt] cct
-	cct2 = (!! 15) . iterate step $ setBits we (Bits 1) cct1
-	cct3 = (!! 15) . iterate step $ setBits we (Bits 0) cct2
-	cct4 = (!! 15) . iterate step $ setBits sw (Bits 0) cct3 in
+		$ setMultiBits [sw, we, ad, ip] [1, 0, waddr, wdt] cct
+	cct2 = (!! 15) . iterate step $ setBits we (wordToBits 1) cct1
+	cct3 = (!! 15) . iterate step $ setBits we (wordToBits 0) cct2
+	cct4 = (!! 15) . iterate step $ setBits sw (wordToBits 0) cct3 in
 	cct4
 	where
 	sw = srSwitch sr; we = srOuterWrite sr
 	ad = srOuterAddress sr; ip = srOuterInput sr
 	waddr = fromIntegral addr_
+	wdt = bitsToWord wdt_

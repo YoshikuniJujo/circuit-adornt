@@ -12,9 +12,9 @@ import Data.Word
 
 import qualified Data.Bits as B
 
+import Circuit.Adornt.Builder
 import Circuit.Adornt.Parts
 
-import Circuit
 import Tools
 
 import Samples.TryTools
@@ -34,6 +34,6 @@ decoder' n = do
 	(iin, os) <- decoder $ fromIntegral n
 	let	n = fromIntegral $ length os
 	for_ (zip [0 ..] os) $ \(i, op) -> connectWire (op, 1, 0) (oin, 1, i)
-	z <- constGate $ Bits 0
+	z <- constGate 0
 	connectWire (z, 64 - n, 0) (oin, 64 - n, n)
 	return (iin, oout)

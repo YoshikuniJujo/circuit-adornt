@@ -3,8 +3,8 @@
 
 module Samples.Alu where
 
-import Circuit
 import Circuit.Adornt.Parts
+import Circuit.Adornt.Builder
 
 alu :: CircuitBuilder (IWire, IWire, IWire, OWire, OWire, OWire)
 alu = do
@@ -33,7 +33,7 @@ alu = do
 	connectWire64 oo o
 	connectWire64 xo s
 
-	cz <- constGate $ Bits 0
+	cz <- constGate 0
 
 	(ofci, ofco, ovfl) <- xorGate
 	connectWire (cs, 1, 63) (ofci, 1, 0)
@@ -45,7 +45,7 @@ alu = do
 	connectWire (xo, 1, 63) (flb, 1, 0)
 	connectWire0 ovfl ovfl'
 	connectWire0 lt slt
-	zero <- constGate $ Bits 0
+	zero <- constGate 0
 	connectWire (zero, 63, 1) (slt, 63, 1)
 
 	(zin, zout) <- zeroDetector
@@ -61,6 +61,6 @@ alu = do
 adder :: CircuitBuilder (IWire, IWire, OWire)
 adder = do
 	(ctr, a, b, r, _z, _ovfl) <- alu
-	ad <- constGate $ Bits 0b0010
+	ad <- constGate 0b0010
 	connectWire64 ad ctr
 	return (a, b, r)

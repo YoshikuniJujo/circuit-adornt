@@ -3,7 +3,7 @@
 
 module Samples.ControlPla where
 
-import Circuit
+import Circuit.Adornt.Builder
 import Circuit.Adornt.Parts
 
 controlPla :: CircuitBuilder (IWire, OWire)
@@ -15,6 +15,6 @@ controlPla = do
 		(0b011, 0b10000010),
 		(0b110, 0b01010000) ]
 	connectWire (iout, 3, 4) (pin, 3, 0)
-	cz <- constGate $ Bits 0
+	cz <- constGate 0
 	connectWire (cz, 5, 0) (pin, 5, 3)
 	return (iin, pout)

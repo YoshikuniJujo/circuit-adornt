@@ -28,6 +28,7 @@ dependencies:
 - diagrams-lib
 - diagrams-svg
 - heaps
+- circuit-adornt-simulate
 - circuit-adornt-build
 - circuit-adornt-parts
 

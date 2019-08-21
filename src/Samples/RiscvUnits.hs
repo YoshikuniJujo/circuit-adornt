@@ -4,8 +4,10 @@ module Samples.RiscvUnits where
 
 import Data.Word
 
-import Circuit
+import Circuit.Adornt.Simulator
 import Circuit.Adornt.Parts
+import Circuit.Adornt.Builder
+
 import Samples.Memory
 
 data ProgramCounter = ProgramCounter {
@@ -29,13 +31,13 @@ programCounter = do
 		pcClock = ic, pcInput = idt, pcOutput = q,
 		pcSwitch = swin, pcOuterClock = oc, pcOuterInput = odt }
 
-resetProgramCounter :: ProgramCounter -> Circuit -> Circuit
+resetProgramCounter :: ProgramCounter -> CircuitSimulator -> CircuitSimulator
 resetProgramCounter pc cct = let
 	cct1 = (!! 20) . iterate step
-		. setBits sw (Bits 1)
-		. setBits cl (Bits 1) $ setBits dt (Bits 0) cct
-	cct2 = (!! 10) . iterate step $ setBits cl (Bits 0) cct1 in
-	setBits sw (Bits 0) cct2
+		. setBits sw (wordToBits 1)
+		. setBits cl (wordToBits 1) $ setBits dt (wordToBits 0) cct
+	cct2 = (!! 10) . iterate step $ setBits cl (wordToBits 0) cct1 in
+	setBits sw (wordToBits 0) cct2
 	where
 	sw = pcSwitch pc
 	cl = pcOuterClock pc
@@ -64,16 +66,17 @@ instructionMemory n = do
 		imOuterAddress = oaddrin, imOuterInput = srOuterInput sr,
 		imDebugOutputs = srDebugOutputs sr }
 
-storeInstructionMemory :: InstructionMemory -> Word16 -> Bits -> Circuit -> Circuit
-storeInstructionMemory im addr_ (Bits wdt) cct = let
+storeInstructionMemory :: InstructionMemory -> Word16 -> Bits -> CircuitSimulator -> CircuitSimulator
+storeInstructionMemory im addr_ wdt_ cct = let
 	cct1 = (!! 15) . iterate step
-		. setMultBits [sw, we, ad, ip] [1, 0, waddr, wdt]
-		$ setBits (imWrite im) (Bits 0) cct
-	cct2 = (!! 15) . iterate step $ setBits we (Bits 1) cct1
-	cct3 = (!! 15) . iterate step $ setBits we (Bits 0) cct2
-	cct4 = (!! 15) . iterate step $ setBits sw (Bits 0) cct3 in
+		. setMultiBits [sw, we, ad, ip] [1, 0, waddr, wdt]
+		$ setBits (imWrite im) (wordToBits 0) cct
+	cct2 = (!! 15) . iterate step $ setBits we (wordToBits 1) cct1
+	cct3 = (!! 15) . iterate step $ setBits we (wordToBits 0) cct2
+	cct4 = (!! 15) . iterate step $ setBits sw (wordToBits 0) cct3 in
 	cct4
 	where
 	sw = imSwitch im; we = imOuterWrite im
 	ad = imOuterAddress im; ip = imOuterInput im
 	waddr = fromIntegral addr_
+	wdt = bitsToWord wdt_
