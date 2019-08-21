@@ -5,7 +5,6 @@ module Samples.Alu where
 
 import Circuit
 import Circuit.Adornt.Parts
-import Samples.CarryLookahead2
 
 alu :: CircuitBuilder (IWire, IWire, IWire, OWire, OWire, OWire)
 alu = do
