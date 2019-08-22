@@ -21,14 +21,17 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- diagrams-lib
+- diagrams-svg
 - circuit-adornt-simulate
 - circuit-adornt-diagram
+- circuit-diagram-dsl
 - circuit-adornt-build
-- circuit-adornt-samples
-- circuit-adornt-parts
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Circuit.Adornt
 
 tests:
   circuit-adornt-test:
