@@ -32,7 +32,7 @@ BasicGate, constGate, idGate, andGate, orGate, notGate, triGate, cheatGate,
 delay,
 
 -- ** Wire Sets
-Wire11, Wire21, Wire31, Wire41, Wire51, Wire22,
+Wire11, Wire21, Wire31, Wire41, Wire51, Wire22, Wire32,
 
 -- ** Wire Connection
 connectWire, connectWire0, connectWire64, connectWire0_64,
