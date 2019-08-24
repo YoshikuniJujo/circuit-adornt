@@ -42,11 +42,11 @@ packages:
 # extra-deps: []
 extra-deps:
     - git: https://github.com/YoshikuniJujo/circuit-adornt-simulate.git
-      commit: a413254d1787baee0776855ff9fde0a9b089100c
+      commit: a68f9aa84dbbb6a1aa60c98a58a174e568193466
     - git: https://github.com/YoshikuniJujo/circuit-adornt-diagram.git
       commit: 571a3ffdabd753682da2be904b805eed567a1534
     - git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
-      commit: 42e1903666020ffd113b69b7d60b9eda6d8e6780
+      commit: 4248de8b28d0d309bbed4c0037e6ae5cd131ad3e
     - git: https://github.com/YoshikuniJujo/circuit-diagram-dsl.git
       commit: 392b034eb11eeb750dd00809a726ccb926e39aae
 

@@ -13,11 +13,11 @@ packages:
     git: https://github.com/YoshikuniJujo/circuit-adornt-simulate.git
     pantry-tree:
       size: 697
-      sha256: 394ae499d3a3dbb6558a6cda480fa02c7245cbc64541d814f952f0d8ca2621ad
-    commit: a413254d1787baee0776855ff9fde0a9b089100c
+      sha256: d19d0a4743a9fe6d301a529384e341839b70758fbac605941b67ef5fc4ca6c23
+    commit: a68f9aa84dbbb6a1aa60c98a58a174e568193466
   original:
     git: https://github.com/YoshikuniJujo/circuit-adornt-simulate.git
-    commit: a413254d1787baee0776855ff9fde0a9b089100c
+    commit: a68f9aa84dbbb6a1aa60c98a58a174e568193466
 - completed:
     cabal-file:
       size: 1603
@@ -41,11 +41,11 @@ packages:
     git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
     pantry-tree:
       size: 895
-      sha256: 719358ed4687b15fc3d88eff969b3c526816f665ea90ca05b545e61554e42e13
-    commit: 42e1903666020ffd113b69b7d60b9eda6d8e6780
+      sha256: 825126553420d3a900881efccb965a4b619cdec1b12e307e3096dfd9ccf407e6
+    commit: 4248de8b28d0d309bbed4c0037e6ae5cd131ad3e
   original:
     git: https://github.com/YoshikuniJujo/circuit-adornt-build.git
-    commit: 42e1903666020ffd113b69b7d60b9eda6d8e6780
+    commit: 4248de8b28d0d309bbed4c0037e6ae5cd131ad3e
 - completed:
     cabal-file:
       size: 5291

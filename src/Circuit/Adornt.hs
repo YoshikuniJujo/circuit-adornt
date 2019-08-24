@@ -26,7 +26,7 @@ circuitDiagram,
 CircuitBuilder,
 
 -- ** Basic Gates
-BasicGate, constGate, idGate, andGate, orGate, notGate, triGate, cheatGate,
+constGate, idGate, andGate, orGate, notGate, triGate, cheatGate,
 
 -- ** Delay
 delay,
